@@ -16,8 +16,9 @@ public class TempSnake
 	private int grow; //tail of the snake isn't deletet while moving as long as grow is > 0
 	private Point lastPosition;
 	private boolean alive;
+	private String name;
 	
-	public TempSnake(Snake snake) {
+	public TempSnake(Snake snake, String name) {
 		this.segments = new LinkedList<Point>();
 		this.grow = 0;
 		for(Point p : snake.segments())
@@ -25,6 +26,18 @@ public class TempSnake
 			Point temp = new Point(p.x,p.y);
 			segments.add(temp);
 		}
+		this.name = name;
+		this.alive = true;
+	}
+	public TempSnake(TempSnake snake) {
+		this.segments = new LinkedList<Point>();
+		this.grow = 0;
+		for(Point p : snake.segments())
+		{
+			Point temp = new Point(p.x,p.y);
+			segments.add(temp);
+		}
+		this.name = snake.name;
 		this.alive = true;
 	}
 	
@@ -32,7 +45,9 @@ public class TempSnake
 		grow += n;
 	}
 	
-	public Point move(Direction dir,Type[][] field) {
+	public void move(Direction dir) {
+//		System.out.println("Snake: " + name);
+//		System.out.println("Segments: " +Arrays.toString(segments.toArray()));
 		Point head = segments.getLast();
 		
 		//calculate new head position
@@ -53,34 +68,20 @@ public class TempSnake
 		default:
 			break;
 		}
-		if (newHead.x == -1) {
-			newHead.x = field.length-1;
-		}
-		if (newHead.x == field.length) {
-			newHead.x = 0;
-		}
-		if (newHead.y == -1) {
-			newHead.y = field[0].length-1;
-		}
-		if (newHead.y == field[0].length) {
-			newHead.y = 0;
-		}
 		
 		segments.addLast(newHead);
 		
 		if (grow == 0) { //don't grow, delete tail
-			Point rp = segments.removeFirst();
-			lastPosition = rp;
-			field[rp.x][rp.y] = Type.SPACE;
+			Point rp = segments.removeFirst();;
 		} else { //tail isn't deleted, snake grew one field
 			grow--;
 		}
-		
-		return newHead;
 	}
 	public Point undoMove(Direction dir, Type[][] field) {
+//		System.out.println("RemoveLast: " + Arrays.toString(segments.toArray()));
 		segments.removeLast();
 		segments.add(lastPosition);
+//		System.out.println("Removed: " + Arrays.toString(segments.toArray()));
 		return lastPosition;
 	}
 	
@@ -100,5 +101,7 @@ public class TempSnake
 		alive = false;
 	}
 
-
+	public String getName() {
+		return name;
+	}
 }

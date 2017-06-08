@@ -1,5 +1,6 @@
 package Brains;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -69,8 +70,9 @@ public class HorstAI implements SnakeBrain {
 		init(gameInfo,snake);
 		Direction move = null;
 		//Koennen wir in 3 Zuegen gewinnen?
-		alphaBeta.alphaBeta(gameInfo.field(), mySnake, enemySnake,8);
-		if(alphaBeta.directionScores.get(move) != null && alphaBeta.bestScore > 1000)
+		alphaBeta.alphaBeta(gameInfo.field(), mySnake, enemySnake,14);
+		System.out.println(Arrays.toString(alphaBeta.directionScores.entrySet().toArray()));
+		if(alphaBeta.directionScores.get(alphaBeta.bestMove) != null && alphaBeta.bestScore > 1000)
 		{
 			System.out.println("CAN WIN!");
 			return alphaBeta.bestMove;
@@ -101,8 +103,16 @@ public class HorstAI implements SnakeBrain {
 						int nextIndex = hPointToIndex.get(nextPos);
 						int tailIndex = hPointToIndex.get(snakeTail);
 //						System.out.println(tailIndex + "---" +nextIndex + "---"+headIndex);
-						if(tailIndex < nextIndex && nextIndex < headIndex && tailIndex > headIndex)
-							shortWayMap[nextPos.x][nextPos.y]=100;
+//						if(tailIndex < nextIndex && nextIndex < headIndex && tailIndex > headIndex)
+//							shortWayMap[nextPos.x][nextPos.y]=100;
+						Direction dir = UtilFunctions.getDirection(snakeHead, nextPos);
+						if(alphaBeta.directionScores.containsKey(dir))
+							if(alphaBeta.directionScores.get(dir)  < 0)
+							{
+								System.out.println("Dont go " + dir);
+//								System.out.println(Arrays.toString(alphaBeta.directionScores.entrySet().toArray()));
+								shortWayMap[nextPos.x][nextPos.y]=100;
+							}
 					}
 					if (snakeHead.y + i < 19 && snakeHead.y + i >= 1)
 					{					
@@ -111,11 +121,19 @@ public class HorstAI implements SnakeBrain {
 						int nextIndex = hPointToIndex.get(nextPos);
 						int tailIndex = hPointToIndex.get(snakeTail);
 //						System.out.println(tailIndex + "---" +nextIndex + "---"+headIndex);
-						if(tailIndex < nextIndex && nextIndex < headIndex && tailIndex > headIndex)
-							shortWayMap[nextPos.x][nextPos.y]=100;
+//						if(tailIndex < nextIndex && nextIndex < headIndex && tailIndex > headIndex)
+//							shortWayMap[nextPos.x][nextPos.y]=100;
+						Direction dir = UtilFunctions.getDirection(snakeHead, nextPos);
+						if(alphaBeta.directionScores.containsKey(dir))
+							if(alphaBeta.directionScores.get(dir)  < 0)
+							{
+								System.out.println("Dont go " + dir);
+//								System.out.println(Arrays.toString(alphaBeta.directionScores.entrySet().toArray()));
+								shortWayMap[nextPos.x][nextPos.y]=100;
+							}
 					}
 				}
-				//Berechne kürzesten Weg zum Ziel
+				//Berechne kuerzesten Weg zum Ziel
 				Node path = finder.getMinPath(snake.headPosition(), target.getActual(),gameInfo.field(),snake.segments().get(0));
 				
 				//Gibt es keinen Pfad dorthin, suche einen neues Ziel

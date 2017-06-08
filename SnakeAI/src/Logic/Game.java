@@ -10,6 +10,7 @@ import java.util.Random;
 import javafx.scene.paint.Color;
 import Brains.HorstAI;
 import Brains.RandomBrain;
+import Util.UtilFunctions;
 
 
 public class Game {
@@ -127,7 +128,7 @@ public class Game {
 			}
 
 			//drawing of the field and everything
-//			field.draw();
+			field.draw();
 			
 
 			//next player
