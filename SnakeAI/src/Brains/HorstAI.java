@@ -1,15 +1,11 @@
 package Brains;
 
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map.Entry;
 
-import javax.swing.plaf.ActionMapUIResource;
-
 import java.util.Random;
-import java.util.PriorityQueue;
 
 import Logic.Apple;
 import Logic.Field;
@@ -29,6 +25,8 @@ import Logic.SnakeBrain;
 //Created by: Julia Hofmann, Marco Piechotta
 
 public class HorstAI implements SnakeBrain {
+	
+	
 //	private PriorityQueue<ApplePos> apples = new PriorityQueue<>(new Comparator<ApplePos>(){
 //
 //		@Override
@@ -47,7 +45,6 @@ public class HorstAI implements SnakeBrain {
 	private Direction last = null;
 	private boolean playSave= false;
 	private Field tempField;
-	private Node hamiltonPath;
 	
 	//Eatable Stuff
 	private Point apple;
@@ -59,7 +56,6 @@ public class HorstAI implements SnakeBrain {
 	private HamiltonPath hFinder;
 	private HashMap<Point, Direction> hPath;
 	private HashMap<Point, Integer> hPointToIndex;
-	private int[] pathArray;
 	
 	//AlphaBeta
 	private AlphaBeta alphaBeta;
@@ -90,7 +86,8 @@ public class HorstAI implements SnakeBrain {
 			target = new Node(null,apple,0,0);
 //			System.out.println("Apple found: "+ apple);
 			//Bin ich n�her am Apfel -> gehe dort hin
-			if(getDistance(mySnake.headPosition(),apple) <= getDistance(enemySnake.headPosition(),apple))
+			if(UtilFunctions.getDistance(mySnake.headPosition(),apple) <= 
+					UtilFunctions.getDistance(enemySnake.headPosition(),apple))
 			{		
 //				System.out.println("Distance: check");
 				int[][] shortWayMap = finder.calcShortWayMap(target.getActual(),gameInfo.field());
@@ -107,7 +104,7 @@ public class HorstAI implements SnakeBrain {
 						if(tailIndex < nextIndex && nextIndex < headIndex && tailIndex > headIndex)
 							shortWayMap[nextPos.x][nextPos.y]=100;
 					}
-					if (snakeHead.y + i < 18 && snakeHead.y + i >= 1)
+					if (snakeHead.y + i < 19 && snakeHead.y + i >= 1)
 					{					
 						Point nextPos = new Point(snakeHead.x, snakeHead.y + i);
 						int headIndex = hPointToIndex.get(snakeHead);
@@ -118,7 +115,7 @@ public class HorstAI implements SnakeBrain {
 							shortWayMap[nextPos.x][nextPos.y]=100;
 					}
 				}
-				//Ist das Ziel nicht durch 1 Schritt erreichbar, suche den Weg dort hin
+				//Berechne kürzesten Weg zum Ziel
 				Node path = finder.getMinPath(snake.headPosition(), target.getActual(),gameInfo.field(),snake.segments().get(0));
 				
 				//Gibt es keinen Pfad dorthin, suche einen neues Ziel
@@ -163,8 +160,8 @@ public class HorstAI implements SnakeBrain {
 			}
 			else
 			{
-			//Gibt es keine Aepfel mehr, dann spiele auf Zeit
-//			System.out.println("No Apples Left");
+				//Gegner ist näher am Apfel
+//				System.out.println("No Apples Left");
 				playSave=true;
 				castle = false;
 			}	
@@ -232,7 +229,7 @@ public class HorstAI implements SnakeBrain {
 				}
 				else
 					addX = false;
-				if (snakeHead.y + i < 18 && snakeHead.y + i >= 1)
+				if (snakeHead.y + i < 19 && snakeHead.y + i >= 1)
 				{		
 					nextPosY = new Point(snakeHead.x, snakeHead.y + i);
 					if(isMoveValid(UtilFunctions.getDirection(snakeHead, nextPosY), snake, gameInfo))
@@ -317,15 +314,18 @@ public class HorstAI implements SnakeBrain {
 				tempField.setCell(info.field().cell(p), p);
 			}
 		}
-		//Pathfinder initialisieren
+		//A* berechnen
+		//snake.move(direction)
+		for(Point p : snake.segments())
+			tempField.setCell(CellType.SNAKE, p);
+		
+		//initialisieren
 		if(finder == null)
 			finder = new Pathfinding(info.field());
 		if(hFinder == null)
 			hFinder = new HamiltonPath(info.field());
 		if(alphaBeta == null)
 			alphaBeta = new AlphaBeta();
-		if(pathArray == null)
-			pathArray = new int[info.field().width()*info.field().height()];
 				
 		//Initialize mySnake and EnemySnake
 		if(mySnake == null || enemySnake == null)
@@ -340,29 +340,32 @@ public class HorstAI implements SnakeBrain {
 				}
 			}
 		}
+		
 		//Berechne HamiltonPath ueber das gesamte Feld
-		if(hamiltonPath == null)
-			hamiltonPath = hFinder.getCompleteMaxPath(info.field());
-		if(hamiltonPath != null && hPath == null)
+		if(hPointToIndex == null || hPath == null)
 		{
-			hPointToIndex = new HashMap<>();
-			hPath = new HashMap<>();
-			int index = 0;
-			Point first = hamiltonPath.getActual();
-			Point last = null;
-			while(hamiltonPath != null && hamiltonPath.getFrom() != null)
+			Node hamiltonPath = hFinder.getCompleteMaxPath(Field.defaultField(tempField.width(), tempField.height()));
+			if(hamiltonPath != null)
 			{
-				hPointToIndex.put(hamiltonPath.getActual(), index);
-				hPath.put(hamiltonPath.getActual(), UtilFunctions.getDirection(hamiltonPath.getFrom().getActual(), hamiltonPath.getActual()));
-				hamiltonPath = hamiltonPath.getFrom();
-				if(hamiltonPath.getFrom() == null)
-					last = hamiltonPath.getActual();
-				index++;
-			}
-			if(last != null)
-			{
-				hPointToIndex.put(last, index);
-				hPath.put(last, UtilFunctions.getDirection(first, last));
+				hPointToIndex = new HashMap<>();
+				hPath = new HashMap<>();
+				int index = 0;
+				Point first = hamiltonPath.getActual();
+				Point last = null;
+				while(hamiltonPath != null && hamiltonPath.getFrom() != null)
+				{
+					hPointToIndex.put(hamiltonPath.getActual(), index);
+					hPath.put(hamiltonPath.getActual(), UtilFunctions.getDirection(hamiltonPath.getFrom().getActual(), hamiltonPath.getActual()));
+					hamiltonPath = hamiltonPath.getFrom();
+					if(hamiltonPath.getFrom() == null)
+						last = hamiltonPath.getActual();
+					index++;
+				}
+				if(last != null)
+				{
+					hPointToIndex.put(last, index);
+					hPath.put(last, UtilFunctions.getDirection(first, last));
+				}
 			}
 		}
 		
@@ -385,9 +388,6 @@ public class HorstAI implements SnakeBrain {
 //		System.out.println("ApplesSize: " + apples.size());
 	}
 
-	private int getDistance(Point a, Point b) {
-		return Math.abs(a.x - b.x) + Math.abs(a.y - b.y);
-	}
 	//Calculate Valid Moves
 	public static boolean isMoveValid(Direction d, Snake snake, GameInfo gameInfo) {
 		Point newHead = new Point(snake.headPosition().x, snake.headPosition().y);
