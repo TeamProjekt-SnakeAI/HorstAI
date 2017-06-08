@@ -2,6 +2,7 @@ package Util;
 
 import java.util.List;
 
+import Logic.Field;
 import Logic.Point;
 import Logic.Snake.Direction;
 
@@ -26,5 +27,16 @@ public final class UtilFunctions {
 	}
 	public static int getDistance(Point a, Point b) {
 		return Math.abs(a.x - b.x) + Math.abs(a.y - b.y);
+	}
+	public static Field getFieldCopy(Field f)
+	{
+		Field copy = Field.defaultField(f.width(), f.height());
+		for(int x=0;x<f.width();x++)
+			for(int y=0;y<f.height();y++)
+			{
+				Point p = new Point(x,y);
+				copy.setCell(f.cell(p), p);
+			}
+		return copy;
 	}
 }

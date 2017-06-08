@@ -11,8 +11,6 @@ public class HamiltonPath {
 	private Field actualField;
 	private int[][] longWayMap;
 	public static int SPACE = 1;
-	public static int APPLE = 1;
-	public static int SNAKE = 100;
 	public static int WALL = 100;
 	
 	public HamiltonPath(Field field)
@@ -121,18 +119,19 @@ public class HamiltonPath {
 	}
 	public Node getMaxPath(Point startPoint, Field field, Snake snake) {
 		actualField = field;
-		Node start = new Node(null,startPoint,0,0);
 		Point target = snake.segments().get(0);
 		Node way = null;
+		Field tmpField = UtilFunctions.getFieldCopy(field);
+		Point last = null;
 		for(Point p : snake.segments())
 		{
+			if(last != null)
+				tmpField.setCell(CellType.SNAKE, last);
+				
 			calcDistanceMap(p);
-			Field tmpField = Field.defaultField(field.width(), field.height());
-			for(int i=0;i<snake.segments().size();i++)
-			{
-				if(snake.segments().get(i).equals(snake.headPosition()) || snake.segments().get(i).equals(p))
-					tmpField.setCell(CellType.SPACE, snake.segments().get(i));
-			}
+			tmpField.setCell(CellType.SPACE, p);
+			last = p;
+
 			if(finder == null)
 				finder = new Pathfinding(tmpField);
 			finder.getMinPath(startPoint, target, tmpField, snake.segments().get(0));
@@ -140,7 +139,7 @@ public class HamiltonPath {
 			if(way != null)
 				break;
 		}	
-		 
+		 System.out.println("END-Point: " + last);
 		Node tempWay = way;
 		while(tempWay != null)
 		{

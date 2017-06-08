@@ -17,6 +17,7 @@ public class Snake {
 	private SnakeBrain brain;
 	private boolean alive;
 	private Color color;
+	private boolean canSetWall; 
 	
 	//move directions
 	public enum Direction {
@@ -36,6 +37,7 @@ public class Snake {
 		this.brain = brain;
 		this.alive = true;
 		this.color = color;
+		this.canSetWall = false;
 	}
 	
 	public void changeScore(int delta) {
@@ -109,5 +111,20 @@ public class Snake {
 	
 	public Color color() {
 		return color;
+	}
+	//sets the attribute canSetWall to a given boolean
+	public void setCanSetWall(boolean newCanSetWall){
+		canSetWall = newCanSetWall;
+	}
+	//returns the attribute canSetwall
+	public boolean getCanSetWall(){
+		return canSetWall;
+	}
+	//sets the wall on the field at a given point in a given direction, if the snake has recently eaten the feature "Wall"
+	public void setWall(Point centerPoint, Direction direction){
+		if(canSetWall){
+			gameInfo.field().setWall(centerPoint, direction);
+			setCanSetWall(false);
+		}
 	}
 }

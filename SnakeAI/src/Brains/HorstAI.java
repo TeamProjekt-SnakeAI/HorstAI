@@ -49,6 +49,7 @@ public class HorstAI implements SnakeBrain {
 	
 	//Eatable Stuff
 	private Point apple;
+	private Point wallItem;
 	
 	//A* 
 	private Pathfinding finder;
@@ -71,7 +72,7 @@ public class HorstAI implements SnakeBrain {
 		Direction move = null;
 		//Koennen wir in 3 Zuegen gewinnen?
 		alphaBeta.alphaBeta(gameInfo.field(), mySnake, enemySnake,14);
-		System.out.println(Arrays.toString(alphaBeta.directionScores.entrySet().toArray()));
+//		System.out.println(Arrays.toString(alphaBeta.directionScores.entrySet().toArray()));
 		if(alphaBeta.directionScores.get(alphaBeta.bestMove) != null && alphaBeta.bestScore > 1000)
 		{
 			System.out.println("CAN WIN!");
@@ -103,8 +104,8 @@ public class HorstAI implements SnakeBrain {
 						int nextIndex = hPointToIndex.get(nextPos);
 						int tailIndex = hPointToIndex.get(snakeTail);
 //						System.out.println(tailIndex + "---" +nextIndex + "---"+headIndex);
-//						if(tailIndex < nextIndex && nextIndex < headIndex && tailIndex > headIndex)
-//							shortWayMap[nextPos.x][nextPos.y]=100;
+						if(tailIndex < nextIndex && nextIndex < headIndex && tailIndex > headIndex)
+							shortWayMap[nextPos.x][nextPos.y]=100;
 						Direction dir = UtilFunctions.getDirection(snakeHead, nextPos);
 						if(alphaBeta.directionScores.containsKey(dir))
 							if(alphaBeta.directionScores.get(dir)  < 0)
@@ -121,8 +122,8 @@ public class HorstAI implements SnakeBrain {
 						int nextIndex = hPointToIndex.get(nextPos);
 						int tailIndex = hPointToIndex.get(snakeTail);
 //						System.out.println(tailIndex + "---" +nextIndex + "---"+headIndex);
-//						if(tailIndex < nextIndex && nextIndex < headIndex && tailIndex > headIndex)
-//							shortWayMap[nextPos.x][nextPos.y]=100;
+						if(tailIndex < nextIndex && nextIndex < headIndex && tailIndex > headIndex)
+							shortWayMap[nextPos.x][nextPos.y]=100;
 						Direction dir = UtilFunctions.getDirection(snakeHead, nextPos);
 						if(alphaBeta.directionScores.containsKey(dir))
 							if(alphaBeta.directionScores.get(dir)  < 0)
@@ -138,7 +139,8 @@ public class HorstAI implements SnakeBrain {
 				
 				//Gibt es keinen Pfad dorthin, suche einen neues Ziel
 				if(path != null)
-				{
+				{	
+					System.out.println(path.getPath());
 					//Wir haben einen Pfad
 					while(path.getFrom() != null && !path.getFrom().getActual().equals(snake.headPosition()))
 						path = path.getFrom();	
@@ -155,13 +157,14 @@ public class HorstAI implements SnakeBrain {
 				}
 				else
 				{
+					System.out.println("Path = null");
 					boolean appleInside = false;
-					for(Point p : snake.segments())
-						if(p.equals(apple))
-						{
-							appleInside = true;
-							break;
-						}
+//					for(Point p : snake.segments())
+//						if(p.equals(apple))
+//						{
+//							appleInside = true;
+//							break;
+//						}
 //					System.out.println("###continue because: No Path");
 					if(!appleInside)
 					{
@@ -178,12 +181,47 @@ public class HorstAI implements SnakeBrain {
 			}
 			else
 			{
-				//Gegner ist näher am Apfel
-//				System.out.println("No Apples Left");
-				playSave=true;
-				castle = false;
+//				//Gegner ist näher am Apfel
+//				if(!snake.getCanSetWall())
+//				{
+//					System.out.println("Cant Set Wall");
+//					target = new Node(null,wallItem,0,0);
+//					//Berechne kuerzesten Weg zum Ziel
+//					Node path = finder.getMinPath(snake.headPosition(), target.getActual(),gameInfo.field(),snake.segments().get(0));
+//					
+//					//Gibt es keinen Pfad dorthin, suche einen neues Ziel
+//					if(path != null)
+//					{
+//						//Wir haben einen Pfad
+//						while(path.getFrom() != null && !path.getFrom().getActual().equals(snake.headPosition()))
+//							path = path.getFrom();	
+//						
+//						move = UtilFunctions.getDirection(path.getFrom().getActual(),path.getActual());
+//						playSave = false;
+//						castle = false;
+//					}
+//				}
+				//Berechne kuerzesten Weg zum Ziel
+				Node path = finder.getMinPath(snake.headPosition(), target.getActual(),gameInfo.field(),snake.segments().get(0));
+				
+				//Gibt es keinen Pfad dorthin, suche einen neues Ziel
+				if(path != null)
+				{
+					playSave=true;
+					castle = false;
+				}
+				else
+				{
+					playSave=false;
+					castle = true;
+				}
 			}	
 		}
+//		else if(snake.getCanSetWall())
+//		{
+//			System.out.println("Can Set Wall");
+//			snake.setWall(new Point(15,10), Direction.LEFT);
+//		}
 		else
 		{
 		//Gibt es keine Aepfel mehr, dann spiele auf Zeit
@@ -193,7 +231,7 @@ public class HorstAI implements SnakeBrain {
 		}	
 		if(castle)
 		{
-//			System.out.println("Castle");
+			System.out.println("Castle");
 			Field tempField = Field.defaultField(gameInfo.field().width(), gameInfo.field().height());
 			for(Point snakePoint : mySnake.segments())
 			{
@@ -395,14 +433,18 @@ public class HorstAI implements SnakeBrain {
 //			while(true)
 //				hPath = null;
 		//Find all Apples
-		getApple(info.field(),snake.headPosition());
+		getItems(info.field(),snake.headPosition());
 	}
-	private void getApple(Field f, Point snakeHead) {
-		for(Entry<Point,Apple> entry : f.getApples().entrySet())
-		{
-			apple = entry.getKey();
-			break;
-		}
+	private void getItems(Field f, Point snakeHead) {
+		for(int x=0;x<f.width();x++)
+			for(int y=0;y<f.height();y++)
+			{
+				Point p = new Point(x,y);
+				if(f.cell(p).equals(CellType.APPLE))
+					apple = p;
+				if(f.cell(p).equals(CellType.FEATUREWALL))
+					wallItem = p;
+			}
 //		System.out.println("ApplesSize: " + apples.size());
 	}
 

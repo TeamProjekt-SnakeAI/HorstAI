@@ -1,6 +1,6 @@
 /*
  * Stores the current state of the game, implements main logic main loop
- * Author: Thomas Stüber
+ * Author: Thomas StÃ¼ber
  * */
 
 package Logic;
@@ -8,9 +8,7 @@ import java.util.ArrayList;
 import java.util.Random;
 
 import javafx.scene.paint.Color;
-import Brains.HorstAI;
 import Brains.RandomBrain;
-import Util.UtilFunctions;
 
 
 public class Game {
@@ -20,8 +18,8 @@ public class Game {
 	private double appleProbability; //probability per move that an apple spawns 
 	private int playersLeft; //is decreased every time a player dies
 	private int currentSnake;
+	private double featureWallProbability; //probability per move that this feature spawns
 	
-	//MYCODE
 	public ArrayList<Snake> getSnakes() {
 		return snakes;
 	}
@@ -30,7 +28,7 @@ public class Game {
 		return field;
 	}
 
-	public Game(ArrayList<SnakeBrain> brains, ArrayList<Point> startPositions, ArrayList<Color> colors, Field field, double appleProbability) {
+	public Game(ArrayList<SnakeBrain> brains, ArrayList<Point> startPositions, ArrayList<Color> colors, Field field, double appleProbability, double featureWallProbability) {
 		this.field = field;
 		currentSnake = 0;
 		GameInfo gameInfo = new GameInfo(this);
@@ -44,6 +42,8 @@ public class Game {
 		
 		rand = new Random();
 		this.appleProbability = appleProbability;
+		
+		this.featureWallProbability = featureWallProbability;
 		
 	}
 	
@@ -71,27 +71,27 @@ public class Game {
 		ArrayList<Color> colors = new ArrayList<Color>();
 		colors.add(Color.YELLOWGREEN);
 		colors.add(Color.AZURE);
-		Game game = new Game(brains, startPositions, colors, field, 0.1);
+		Game game = new Game(brains, startPositions, colors, field, 0.1, 0.1);
 		game.run();
 	}
+	
 	
 	//main loop
 	public void run() {
 		while (playersLeft > 1) {
 			nextStep();
-//			try {
-//				Thread.sleep(10);
-//			} catch (InterruptedException e) {
-//				System.out.println("Das ist garnicht mal so gut...");
-//				e.printStackTrace();
-//			}
+			try {
+				Thread.sleep(1000);
+			} catch (InterruptedException e) {
+				System.out.println("Das ist garnicht mal so gut...");
+				e.printStackTrace();
+			}
 		}
 	}
 
 
 	public void nextStep() {
 		if (playersLeft > 1) {
-
 			//adding apples and stuff
 			if (rand.nextDouble() <= appleProbability && field.getApples().size() == 0) {
 				Point position = new Point(0,0);
@@ -100,6 +100,15 @@ public class Game {
 					position.y = rand.nextInt(field.height());
 				} while(field.cell(new Point(position.x, position.y)) != Field.CellType.SPACE);
 				field.addApple(new Apple(50, 1, position), position);
+			}
+			//adding FeatureWall and stuff
+			if(rand.nextDouble() <= featureWallProbability && !field.hasFeatureWall()){
+				Point position = new Point(0,0);
+				do {
+					position.x = rand.nextInt(field.width());
+					position.y = rand.nextInt(field.height());
+				} while(field.cell(new Point(position.x,position.y)) != Field.CellType.SPACE);
+				field.setFeatureWall(position);
 			}
 
 			//finding next snake which is alive
@@ -116,10 +125,14 @@ public class Game {
 			if (field.cell(headPosition) == Field.CellType.SPACE) {
 				field.setCell(Field.CellType.SNAKE, headPosition);
 			} else if (field.cell(headPosition) == Field.CellType.APPLE) { //apple is eaten
-//				System.out.println(headPosition);
+				System.out.println(headPosition);
 				Apple apple = field.getApple(headPosition);
 				apple.apply(snake);
 				field.removeApple(headPosition);
+				field.setCell(Field.CellType.SNAKE, headPosition);
+			} else if(field.cell(headPosition) == Field.CellType.FEATUREWALL){//adding the case if a snake eats the feature "Wall"
+				snake.setCanSetWall(true);
+				field.removeFeatureWall(headPosition);
 				field.setCell(Field.CellType.SNAKE, headPosition);
 			} else { //snake hit itself or the wall
 				field.setCell(Field.CellType.SNAKE, headPosition);

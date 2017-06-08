@@ -117,18 +117,20 @@ public class AlphaBeta {
 		if(mySnake)
 			switch(returnType)
 			{
-			case SPACE: gameField[newHead.x][newHead.y] = Type.MYSNAKE;break;
+			case SPACE:
+			case WALLFEATURE:
 			case APPLE: gameField[newHead.x][newHead.y] = Type.MYSNAKE;break;
 			case ENEMYSNAKE: gameField[newHead.x][newHead.y] = Type.MYSNAKEINSNAKE;break;
 			case MYSNAKE: gameField[newHead.x][newHead.y] = Type.MYSNAKEINSNAKE;break;
 			case WALL: gameField[newHead.x][newHead.y] = Type.MYSNAKEINWALL;break;
-			default:
+			default: 
 			}
 			
 		else
 			switch(gameField[newHead.x][newHead.y])
 			{
-			case SPACE: gameField[newHead.x][newHead.y] = Type.ENEMYSNAKE;break;
+			case SPACE:
+			case WALLFEATURE:
 			case APPLE: gameField[newHead.x][newHead.y] = Type.ENEMYSNAKE;break;
 			case ENEMYSNAKE: gameField[newHead.x][newHead.y] = Type.ENEMYSNAKEINSNAKE;break;
 			case MYSNAKE: gameField[newHead.x][newHead.y] = Type.ENEMYSNAKEINSNAKE;break;
@@ -242,6 +244,7 @@ public class AlphaBeta {
 				case WALL: gameField[x][y] = Type.WALL; break;
 				case APPLE: gameField[x][y] = Type.APPLE; break;
 				case SPACE: gameField[x][y] = Type.SPACE; break;
+				case FEATUREWALL: gameField[x][y] = Type.WALLFEATURE; break;
 				}
 			}
 	}

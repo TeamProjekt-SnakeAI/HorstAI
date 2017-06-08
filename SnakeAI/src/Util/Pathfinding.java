@@ -46,7 +46,8 @@ public class Pathfinding {
 		Node start = new Node(null,startPoint,0,0);
 		if(shortWayMap == null)
 			calcShortWayMap(target,actualField);
-		shortWayMap[snakeTail.x][snakeTail.y]=1;
+		if(UtilFunctions.getDistance(startPoint, snakeTail) > 1)
+			shortWayMap[snakeTail.x][snakeTail.y]=1;
 		// Calculate A*
 		openList.add(start);
 		
@@ -133,6 +134,10 @@ public class Pathfinding {
 				else if(actualField.cell(new Point(i,j)).equals(CellType.SNAKE))
 				{
 					shortWayMap[i][j] = WALL;
+				}
+				else if(actualField.cell(new Point(i,j)).equals(CellType.FEATUREWALL))
+				{
+					shortWayMap[i][j] = SPACE;
 				}
 			}
 		return shortWayMap;

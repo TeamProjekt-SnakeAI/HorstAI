@@ -5,7 +5,6 @@ import java.util.LinkedList;
 
 import Brains.HorstAI;
 import Brains.RandomBrain;
-import Brains.SurvivalAI;
 import Logic.Apple;
 import Logic.Field;
 import Logic.Field.CellType;
@@ -50,9 +49,6 @@ public class MainWindow extends Application {
     	
     	Field field = Field.defaultField(30, 20);
 		field.addApple(new Apple(50, 1, new Point(1,2)), new Point(1,2));
-		field.addApple(new Apple(50, 1, new Point(3,2)), new Point(3,2));
-		field.addApple(new Apple(50, 1, new Point(2,1)), new Point(2,1));
-		field.addApple(new Apple(50, 1, new Point(2,3)), new Point(2,3));
 		
 		Point start1 = new Point(2, 2);
 		Point start2 = new Point(27, 17);
@@ -65,7 +61,7 @@ public class MainWindow extends Application {
 		ArrayList<Color> colors = new ArrayList<Color>();
 		colors.add(Color.YELLOWGREEN);
 		colors.add(Color.BLUEVIOLET);
-		game = new Game(brains, startPositions, colors, field, 0.1);
+		game = new Game(brains, startPositions, colors, field, 1, 0.005);
 		//game.run();Apple
 		
 		//move intervall of the snakes
@@ -93,8 +89,8 @@ public class MainWindow extends Application {
         
         root.setContent(canvas);
         primaryStage.setScene(new Scene(root, 800, 800));
-        primaryStage.setWidth(950);
-        primaryStage.setHeight(650);
+        primaryStage.setWidth(1000);
+        primaryStage.setHeight(700);
         primaryStage.show();
     }
     
@@ -128,6 +124,32 @@ public class MainWindow extends Application {
 				case WALL:
 					gc.setFill(Color.DARKGREEN);
 					gc.fillRect(x*cellWidth, y*cellWidth, (x+1)*cellWidth, (y+1)*cellWidth);
+					break;
+				case FEATUREWALL: //paints the feature "Wall" on the canvas as a wall-pixel-art
+					gc.setFill(Color.CORAL);
+					gc.fillRect(x*cellWidth, y*cellWidth, (x+1)*cellWidth,(y+1)* cellWidth);
+					gc.setFill(Color.LIGHTGREY);
+					gc.fillRect(x*cellWidth, y*cellWidth+2, cellWidth, 2);
+					gc.fillRect(x*cellWidth, y*cellWidth+8, cellWidth, 2);
+					gc.fillRect(x*cellWidth, y*cellWidth+14, cellWidth, 2);
+					gc.fillRect(x*cellWidth, y*cellWidth+20, cellWidth, 2);
+					gc.fillRect(x*cellWidth, y*cellWidth+26, cellWidth, 2);
+					gc.setFill(Color.SILVER);
+					gc.fillRect(x*cellWidth+5, y*cellWidth, 1, 3);
+					gc.fillRect(x*cellWidth+17, y*cellWidth, 1, 3);
+					gc.fillRect(x*cellWidth+29, y*cellWidth, 1, 3);
+					gc.fillRect(x*cellWidth+11, y*cellWidth+3, 1, 6);
+					gc.fillRect(x*cellWidth+23, y*cellWidth+3, 1, 6);
+					gc.fillRect(x*cellWidth+5, y*cellWidth+9, 1, 6);
+					gc.fillRect(x*cellWidth+17, y*cellWidth+9, 1, 6);
+					gc.fillRect(x*cellWidth+29, y*cellWidth+9, 1, 6);
+					gc.fillRect(x*cellWidth+11, y*cellWidth+15, 1, 6);
+					gc.fillRect(x*cellWidth+23, y*cellWidth+15, 1, 6);
+					gc.fillRect(x*cellWidth+5, y*cellWidth+21, 1, 6);
+					gc.fillRect(x*cellWidth+17, y*cellWidth+21, 1, 6);
+					gc.fillRect(x*cellWidth+29, y*cellWidth+21, 1, 6);
+					gc.fillRect(x*cellWidth+11, y*cellWidth+27, 1, 3);
+					gc.fillRect(x*cellWidth+23, y*cellWidth+27, 1, 3);
 					break;
 				default:
 					break;
