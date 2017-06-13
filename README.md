@@ -24,34 +24,34 @@ bewerten wir bereits an diesem Punkt.
 Alternativ könnte man auch den MinMax Algorithmus verwenden. Alpha-Beta Pruning ist allerdings die
 Verbesserung des MinMax Algorithmus um sehr unwahrscheinliche Züge gar nicht erst zu betrachten.
 
-##HamiltonPathfinding
+## HamiltonPathfinding
 Falls sich unsere Schlange eingeschlossen hat, möchten wir nicht mehr den kürzesten Pfad bestimmen
 sondern den längsten zum Schwanz der Schlange. Diesen Pfad können wir anhand eines Hamilton-Path Algorithmus
 berechnen. Außerdem kann man über den Längsten Pfad Situationen vermeiden, in denen man sich einschließt.
 
-##JUnit Tests
+## JUnit Tests
 Über Unit-Tests testen wir unsere Algorithmen soweit dies möglich ist. Bis jetzt sind das allerdings
 noch nicht sehr ausführliche Tests, aber dienen Hauptsächlich dem Zweck selbst mal Unit-Tests geschrieben
 zu haben ^^'
 
-##Optimierungsbedarf
+## Optimierungsbedarf
 Bis jetzt laufen folgende Dinge noch nicht optimal und benötigen Verbesserungen
 * Alpha-Beta Pruning (Neue Features einbauen, also ist das ständig auf der Liste ^^)
 * Hamilton-Pathfinding (Hier stimmt in der Berechnung noch etwas nicht.)
 * Verwendung des Hamilton-Path
 
-##ToDo-Liste 17.5. - 31.5.
+## ToDo-Liste 17.5. - 31.5.
 * Exception beseitigen (check)
 * Optimierung Pfadsuche (check)
 * Alpha-Beta Pruning Einsatzmöglichkeiten (check)
 
-##ToDo-Liste 31.5. - 14.6.
+## ToDo-Liste 31.5. - 14.6.
 * Alpha-Beta korrigieren (check)
 * Unit-Tests einfügen (check)
 * GIT einrichten (check)
 * WallFeature einbauen (check)
 
-##ToDo-Liste 14.6. - 28.6.
+## ToDo-Liste 14.6. - 28.6.
 * Das
 * Wird 
 * Noch
