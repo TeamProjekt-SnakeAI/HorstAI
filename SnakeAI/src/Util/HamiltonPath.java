@@ -33,17 +33,12 @@ public class HamiltonPath {
 			tempWay = tempWay.getFrom();
 		}
 		tempWay = way;
-//		System.out.println(way);
-//		System.out.println("Way ready to optimze");
 		int i=0;
 		while(tempWay != null && tempWay.getFrom() != null && i <= 4)
 		{
 			Point from = tempWay.getFrom().getActual();
 			Point to = tempWay.getActual();
 			Direction dir = UtilFunctions.getDirection(from,to);
-//			System.out.println("From: " + from);
-//			System.out.println("To: " + to);
-//			System.out.println("Dir: " + dir);
 			boolean changed = false;
 			switch(dir)
 			{
@@ -106,10 +101,8 @@ public class HamiltonPath {
 				}
 				break;
 			}
-//			System.out.println("Temp: " +way.getPath());
 			if(!changed)
 			{
-//				System.out.println("not changed!");
 				longWayMap[tempWay.getActual().x][tempWay.getActual().y]=100;
 				tempWay = tempWay.getFrom();
 			}
@@ -147,17 +140,12 @@ public class HamiltonPath {
 			tempWay = tempWay.getFrom();
 		}
 		tempWay = way;
-//		System.out.println(way);
-//		System.out.println("Way ready to optimze");
 		int i=0;
 		while(tempWay != null && tempWay.getFrom() != null && i <= 4)
 		{
 			Point from = tempWay.getFrom().getActual();
 			Point to = tempWay.getActual();
 			Direction dir = UtilFunctions.getDirection(from,to);
-//			System.out.println("From: " + from);
-//			System.out.println("To: " + to);
-//			System.out.println("Dir: " + dir);
 			boolean changed = false;
 			switch(dir)
 			{
@@ -220,10 +208,8 @@ public class HamiltonPath {
 				}
 				break;
 			}
-//			System.out.println("Temp: " +way.getPath());
 			if(!changed)
 			{
-//				System.out.println("not changed!");
 				longWayMap[tempWay.getActual().x][tempWay.getActual().y]=100;
 				tempWay = tempWay.getFrom();
 			}

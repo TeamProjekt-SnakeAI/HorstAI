@@ -1,6 +1,5 @@
 package Util;
 
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -11,18 +10,18 @@ import Logic.Snake;
 import Logic.Snake.Direction;
 
 public class AlphaBeta {		
-	private int MAXDEPTH;
-	private TempSnake mySnake;
-	private TempSnake enemySnake;
+	private int MAXDEPTH;				//Maximale Tiefe, die vorraus geschaut wird
+	private TempSnake mySnake;			//Referenz zur eigenen Schlange
+	private TempSnake enemySnake;		//Referenz zur gegnerischen Schlange
 	
 	//{ WIN LOOSE }
 	private int[] evalSituation = {100000,-100000};
 	
-	public HashMap<Direction,Integer> directionScores = new HashMap<>();
-	public int bestScore;
-	public Direction bestMove;
+	public HashMap<Direction,Integer> directionScores = new HashMap<>();	//HashMap, durch die man sich für jede Direction den berechneten Score holen kann
+	public int bestScore;													//Bester Score, der berechnet wurde
+	public Direction bestMove;												//Bester Move der berechnet wurde
 
-	
+	//Konstruktor für genetischen Algorithmus um für evalSituation den besten Array zu ermitteln um Situationen zu bewerten
 //	public AlphaBeta(int[] evalStuff) {
 //		evalSituation = evalStuff;
 //	}
@@ -50,10 +49,19 @@ public class AlphaBeta {
 		//AlphaBeta berechnen. Nächster Spieler ist MAX-Spieler
 		bestScore = max(MAXDEPTH,Integer.MIN_VALUE,Integer.MAX_VALUE,this.mySnake,this.enemySnake,gameField);
 	}
+	
+	/**
+	 * max bestimmt für den Max-Spieler(die eigene Schlange) den nächsten Zug und testet diesen
+	 * @param depth		gibt die derzeitige Suchtiefe an und dient als Abbruchkriterium
+	 * @param alpha		um unwahrscheinliche Möglichkeiten auszuschließen
+	 * @param beta		um unwahrscheinliche Möglichkeiten auszuschließen
+	 * @param mySnake	derzeitige eigene Schlange
+	 * @param enemySnake	derzeitige gegnerische Schlange
+	 * @param gameField	derzeitiges Spielfeld
+	 * @return gibt die Bewertung für den gewählten Zug zurück sobald evaluiert wurde
+	 */
 	private int max(int depth, int alpha, int beta, TempSnake mySnake, TempSnake enemySnake,Type[][] gameField)
 	{
-//		System.out.println("--MAX--"+depth);
-//		System.out.println(gameFieldString(gameField));
 		List<Direction> possibleMoves = getPossibleMoves(mySnake.headPosition(),gameField, mySnake);
 		if(depth==0 || possibleMoves.isEmpty() || gameEnd(gameField))
 			return eval(gameField,mySnake.headPosition(),enemySnake.headPosition());
@@ -67,7 +75,6 @@ public class AlphaBeta {
 			if(depth == MAXDEPTH)
 			{
 				directionScores.put(dir, value);
-//				System.out.println(dir+" -> " + value);
 			}
 			if(value > maxValue)
 			{
@@ -80,14 +87,20 @@ public class AlphaBeta {
 					break;
 			}
 		}
-//		System.out.println("--MyMove-----");
 		return maxValue;
 	}
+	/**
+	 * min bestimmt für den Min-Spieler(die gegnerische Schlange) den nächsten Zug und testet diesen
+	 * @param depth		gibt die derzeitige Suchtiefe an und dient als Abbruchkriterium
+	 * @param alpha		um unwahrscheinliche Möglichkeiten auszuschließen
+	 * @param beta		um unwahrscheinliche Möglichkeiten auszuschließen
+	 * @param mySnake	derzeitige eigene Schlange
+	 * @param enemySnake	derzeitige gegnerische Schlange
+	 * @param gameField	derzeitiges Spielfeld
+	 * @return gibt die Bewertung für den gewählten Zug zurück sobald evaluiert wurde
+	 */
 	private int min(int depth, int alpha, int beta, TempSnake mySnake, TempSnake enemySnake,Type[][] gameField)
 	{
-//		System.out.println("--MIN--"+depth);
-//		System.out.println(gameFieldString(gameField));
-//		System.out.println("EnemyMove: " + enemySnake.headPosition());
 		List<Direction> possibleMoves = getPossibleMoves(enemySnake.headPosition(),gameField, enemySnake);
 		if(depth==0 || possibleMoves.isEmpty() || gameEnd(gameField))
 			return eval(gameField,mySnake.headPosition(),enemySnake.headPosition());
@@ -105,9 +118,16 @@ public class AlphaBeta {
 					break;
 			}
 		}
-//		System.out.println("--enemyMove-----");
 		return minValue;
 	}
+	/**
+	 * wird verwendet um einen Zug zu simulieren
+	 * @param dir	in welche Richtung soll sich die Schlange bewegen
+	 * @param gameField	aktuelles Spielfeld
+	 * @param snake	zu bewegende Schlange
+	 * @param mySnake	handelt es sich dabei um die eigene Schlange?
+	 * @return	gibt den Feldtyp zurück, auf dem nun die Schlange ist. (Um den Zug später rückgängig machen zu können)
+	 */
 	private Type makeMove(Direction dir, Type[][] gameField, TempSnake snake, boolean mySnake) {
 		snake.move(dir);
 		Point newHead = snake.headPosition();
@@ -139,6 +159,14 @@ public class AlphaBeta {
 			}
 		return returnType;
 	}
+	/**
+	 * undoMove macht einen gewählten Zug für eine Schlange rückgängig
+	 * @param gameField aktuelles Spielfeld
+	 * @param snake	Schlange die bewegt werden muss
+	 * @param movedTo Schlange hatte sich hier hin bewegt
+	 * @param mySnake ist das meine eigene Schlange?
+	 * @param changed Feldtyp der durch die move-Bewegung ersetzt wurde
+	 */
 	private void undoMove(Type[][] gameField, TempSnake snake,Point movedTo, boolean mySnake, Type changed) {
 		gameField[movedTo.x][movedTo.y] = changed;
 		Point newTail = snake.segments().get(0);
@@ -147,6 +175,13 @@ public class AlphaBeta {
 		else
 			gameField[newTail.x][newTail.y] = Type.ENEMYSNAKE;
 	}
+	/**
+	 * Gibt alle gültigen Directions zurück
+	 * @param sH Position des Schlangenkopfs
+	 * @param gameField aktuelles Spielfeld
+	 * @param snake welche Schlange
+	 * @return Liste mit allen gültigen Directions
+	 */
 	private List<Direction> getPossibleMoves(Point sH, Type[][] gameField, TempSnake snake) {
 		List<Direction> possibleMoves = new LinkedList<>();
 		for (int i = -1; i <= 1; i += 2) {
@@ -166,33 +201,37 @@ public class AlphaBeta {
 //		System.out.println("Possible Moves: "+Arrays.toString(possibleMoves.toArray()));
 		return possibleMoves;
 	}
+	/**
+	 * eval bewertet das aktuelle Spielfeld und gibt zurück wie gut dieses für die eigene Schlange ist
+	 * @param gameField aktuelles Spielfeld
+	 * @param myHead Kopf der eigenen Schlange
+	 * @param enemyHead Kopf der gegnerischen Schlange
+	 * @return Bewertung des Spielfelds 
+	 */
 	private int eval(Type[][] gameField, Point myHead, Point enemyHead)
 	{
-//		System.out.println(gameFieldString(gameField));
 		int value= 0;
+		
 		//WIN
-//		Point enemyHead = enemySnake.headPosition();
 		switch(gameField[enemyHead.x][enemyHead.y])
 		{
 		case ENEMYSNAKEINSNAKE: value+= 1*evalSituation[0];break;
 		case ENEMYINWALL: value+= 1*evalSituation[0];break;
 		default:
 		}
-//		System.out.println("EnemyHead: "+enemyHead);
+		
 		if(enemyHead.x == 0 || enemyHead.y == 0)
 			value += 1*evalSituation[0];
 		if(enemyHead.x == gameField.length-1 || enemyHead.y == gameField[0].length-1)
 			value += 1*evalSituation[0];
 		
-//		System.out.println("EnemyHead in Wall: " + value);
 		if(pointInSnake(mySnake,enemySnake.headPosition()))
 			value+= 1*evalSituation[0];
 		if(pointInSnake(enemySnake,enemySnake.headPosition()))
 			value+= 1*evalSituation[0];
-//		System.out.println("EnemyHead bite: " + value);
+		
 		
 		//LOOSE
-//		Point myHead = mySnake.headPosition();
 		switch(gameField[myHead.x][myHead.y])
 		{
 		case MYSNAKEINSNAKE: value+=1*evalSituation[1];break;
@@ -203,15 +242,19 @@ public class AlphaBeta {
 			value += 1*evalSituation[1];
 		if(myHead.x == gameField.length-1 || myHead.y == gameField[0].length-1)
 			value += 1*evalSituation[1];
-
 		
 		if(pointInSnake(enemySnake,mySnake.headPosition()))
 			value+= 1*evalSituation[1];
 		if(pointInSnake(mySnake,mySnake.headPosition()))
 			value+= 1*evalSituation[1];
-//		System.out.println("Selfbite: " + value);
+
 		return value;
 	}
+	/**
+	 * gameEnd bestimmt anhand des Spielfelds ob das Spiel vorbei ist.
+	 * @param gameField aktuelles Spielfeld
+	 * @return
+	 */
 	private boolean gameEnd(Type[][] gameField)
 	{
 		for(int x=0;x<gameField.length;x++)
@@ -227,6 +270,11 @@ public class AlphaBeta {
 				}
 		return false;
 	}
+	/**
+	 * dient zur initialisierung des Spielfelds, mit dem simuliert wird
+	 * @param gameField aktuelles Spielfeld(leer)
+	 * @param field Spielfeld des tatsächlichen Spiels
+	 */
 	private void fillGameField(Type[][] gameField,Field field)
 	{
 		for(int x=0;x<gameField.length;x++)
@@ -248,6 +296,12 @@ public class AlphaBeta {
 				}
 			}
 	}
+	/**
+	 * gibt Zurück ob die Headposition in der anderen Schlange liegt
+	 * @param snake Schlange
+	 * @param head	Kopf der anderen Schlange
+	 * @return
+	 */
 	private boolean pointInSnake(TempSnake snake, Point head)
 	{
 		for(int i=0;i<snake.segments().size()-1;i++)
@@ -255,6 +309,11 @@ public class AlphaBeta {
 				return true;
 		return false;
 	}
+	/**
+	 * Zur Ausgae des Spielfelds. Für Debugging Zwecke
+	 * @param field
+	 * @return
+	 */
 	public String gameFieldString(Type[][] field) {
 		String s = "";
 		for (int x = 0;x < field.length;x++) {

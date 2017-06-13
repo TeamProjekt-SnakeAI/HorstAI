@@ -39,7 +39,8 @@ public class Pathfinding {
 		actualField = field;
 		distanceMap = new int[field.width()][field.height()];
 	}
-	public Node getMinPath(Point startPoint, Point target,Field field, Point snakeTail) {
+	public Node getMinPath(Point startPoint, Point target,Field field, Point snakeTail) 
+	{
 		openList.clear();
 		closedList.clear();
 		actualField = field;
