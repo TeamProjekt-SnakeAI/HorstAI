@@ -1,4 +1,4 @@
-package Brains;
+package PrototypKIs;
 
 import java.util.HashMap;
 import java.util.LinkedList;

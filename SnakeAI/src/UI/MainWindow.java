@@ -13,6 +13,7 @@ import Logic.GameInfo;
 import Logic.Point;
 import Logic.Snake;
 import Logic.SnakeBrain;
+import PrototypKIs.NewBrain;
 import javafx.animation.Animation;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
