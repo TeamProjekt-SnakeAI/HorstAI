@@ -54,8 +54,8 @@ Bis jetzt laufen folgende Dinge noch nicht optimal und benötigen Verbesserungen
 ## ToDo-Liste 14.6. - 28.6.
 * Laufzeitverbesserungen
 * 2 Features einbauen (check)
-** Schlangen tauschen (check)
-** Kopf mit Schwanz tauschen (check)
+    * Schlangen tauschen (check)
+    * Kopf mit Schwanz tauschen (check)
 * KI Verbesserungen(NewBrain)
 * Noch
 * Entschieden
