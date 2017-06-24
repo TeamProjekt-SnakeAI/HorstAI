@@ -4,8 +4,6 @@
  * */
 
 package Logic;
-import java.lang.management.ManagementFactory;
-import java.lang.management.ThreadMXBean;
 import java.util.LinkedList;
 
 import javafx.scene.paint.Color;
@@ -20,7 +18,6 @@ public class Snake {
 	private boolean alive;
 	private Color color;
 	private boolean canSetWall; 
-	private BrainThread thread;
 	
 	//move directions
 	public enum Direction {
@@ -41,7 +38,6 @@ public class Snake {
 		this.alive = true;
 		this.color = color;
 		this.canSetWall = false;
-		this.thread = new BrainThread(brain, gameInfo, this);
 	}
 	
 	public void changeScore(int delta) {
@@ -53,24 +49,7 @@ public class Snake {
 	}
 	
 	public void move() {
-		long id = thread.getId();
-		thread.start();
-		long starttime =  ManagementFactory.getThreadMXBean().getThreadCpuTime(id);
-		System.out.println(starttime);
-		while(thread.isAlive() && ManagementFactory.getThreadMXBean().getThreadCpuTime(id) - starttime < 2000000) {
-			try {
-				Thread.sleep(5);
-			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}
-		if (thread.isAlive()) {
-			thread.stop();
-		}
-		Snake.Direction direction = thread.nextMove();
-		
-		thread = new BrainThread(brain, gameInfo, this);
+		Direction direction = brain.nextDirection(gameInfo, this); //ask user implemented brain for next move
 		Point head = segments.getLast();
 		
 		//calculate new head position
@@ -117,9 +96,7 @@ public class Snake {
 	public Point headPosition() {
 		return segments.getLast();
 	}
-	public void setHead(Point head){
-		segments.addLast(head);
-	}
+	
 	public LinkedList<Point> segments() {
 		return segments;
 	}
@@ -149,10 +126,5 @@ public class Snake {
 			gameInfo.field().setWall(centerPoint, direction);
 			setCanSetWall(false);
 		}
-	}
-
-	public double getScore() {
-		// TODO Auto-generated method stub
-		return 0;
 	}
 }

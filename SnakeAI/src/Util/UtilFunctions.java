@@ -18,7 +18,7 @@ public final class UtilFunctions {
 			return Direction.UP;
 		return null;
 	}
-	public static Node getNodeFromClosedList(Point p, List<Node> closedList) {
+	public static Node getMovePair(Point p, List<Node> closedList) {
 		for (Node n : closedList)
 			if (n.getActual().equals(p))
 				return n;

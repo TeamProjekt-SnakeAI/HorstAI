@@ -4,9 +4,8 @@
  * */
 
 package Logic;
-import java.util.Arrays; 
+import java.util.Arrays;
 import java.util.HashMap;
-
 
 import Logic.Snake.Direction;
 
@@ -17,8 +16,7 @@ public class Field {
 		WALL,
 		APPLE,
 		SPACE,
-		FEATUREWALL,
-		PORTAL
+		FEATUREWALL
 	}
 
 	private CellType[][] cells;
@@ -26,7 +24,6 @@ public class Field {
 	private int height;
 	private HashMap<Point, Apple> apples;
 	private boolean hasFeatureWall;
-	private boolean isPortalActive;
 	
 	public Field(int width, int height) {
 		cells = new CellType[width][height];
@@ -34,7 +31,6 @@ public class Field {
 		this.height = height;
 		apples = new HashMap<Point, Apple>();
 		hasFeatureWall = false;
-		isPortalActive=false;
 	}
 	
 	public static Field defaultField(int width, int height) {
@@ -65,15 +61,6 @@ public class Field {
 		apples.put(position,  apple);
 		cells[position.x][position.y] = CellType.APPLE;
 	}
-	public void addPortal(Portals portal) {
-		cells[portal.getPortal1().x][portal.getPortal1().y] = CellType.PORTAL;
-		cells[portal.getPortal2().x][portal.getPortal2().y] = CellType.PORTAL;
-	}
-	public void removePortal(Portals portal) {
-		cells[portal.getPortal1().x][portal.getPortal1().y] = CellType.SPACE;
-		cells[portal.getPortal2().x][portal.getPortal2().y] = CellType.SPACE;
-	}
-	
 	
 	public Apple getApple(Point position) {
 		return apples.get(position);
@@ -124,10 +111,6 @@ public class Field {
 					break;
 				case FEATUREWALL:
 					s += "+";
-					break;
-				case PORTAL:
-					s += "O";
-					break;
 				default:
 					break;
 				
@@ -139,7 +122,7 @@ public class Field {
 		}
 		return s;
 	}
-	public HashMap getApples(){
+	public HashMap<Point,Apple> getApples(){
 		return apples;
 	}
 	public void setFeatureWall(Point position){
