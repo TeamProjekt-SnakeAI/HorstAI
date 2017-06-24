@@ -112,8 +112,10 @@ public class MainWindow extends Application {
 					gc.fillRoundRect(x*cellWidth+6, y*cellWidth+6, cellWidth-12, cellWidth-12,10,10);
 					break;
 				case PORTAL:
-					gc.setStroke(Color.CYAN);
-					gc.strokeOval(x*cellWidth, y*cellWidth, 10, 20);
+					gc.setFill(Color.BLACK);
+					gc.fillRect(x*cellWidth, y*cellWidth, (x+1)*cellWidth, (y+1)*cellWidth);
+					gc.setFill(Color.BLUE);
+					gc.fillRoundRect(x*cellWidth+2, y*cellWidth+2, cellWidth-4, cellWidth-4,20,50);
 					break;
 				case CHANGESNAKE:
 					int xPos = x*cellWidth;
