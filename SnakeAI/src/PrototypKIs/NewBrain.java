@@ -79,11 +79,11 @@ public class NewBrain implements SnakeBrain {
 	
 	// get position of the one apple of the field
 	public Point getApple(Field field){
-		for(Entry<Point,Apple> entry : field.getApples().entrySet())
-		{
-			if(entry.getValue() != null)
-				return entry.getKey();
-		}
+//		for(Entry<Point,Apple> entry : field.getApples().entrySet())
+//		{
+//			if(entry.getValue() != null)
+//				return entry.getKey();
+//		}
 		return null;
 	}
 	

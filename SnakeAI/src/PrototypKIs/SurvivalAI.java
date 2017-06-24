@@ -14,7 +14,7 @@ import Logic.Point;
 import Logic.Snake;
 import Logic.Snake.Direction;
 import Util.Node;
-import Util.Pathfinding;
+import Util.Pathfinder;
 import Util.UtilFunctions;
 import Logic.SnakeBrain;
 
@@ -26,19 +26,19 @@ public class SurvivalAI implements SnakeBrain {
 	private Direction last = null;
 	
 	//A* 
-	Pathfinding finder;
+	Pathfinder finder;
 
 	@Override
 	public Direction nextDirection(GameInfo gameInfo, Snake snake) {
 		Direction move = null;
 		if(finder == null)
-			finder = new Pathfinding(gameInfo.field());
+			finder = new Pathfinder(gameInfo.field());
 		Point target = null;
-		for(Entry<Point,Apple> entry : gameInfo.field().getApples().entrySet())
-		{
-			target = entry.getKey();
-			break;
-		}
+//		for(Entry<Point,Apple> entry : gameInfo.field().getApples().entrySet())
+//		{
+//			target = entry.getKey();
+//			break;
+//		}
 		Node path = null;
 		if(target != null)
 			path = finder.getMinPath(snake.headPosition(),target , gameInfo.field(), snake.segments().get(0));

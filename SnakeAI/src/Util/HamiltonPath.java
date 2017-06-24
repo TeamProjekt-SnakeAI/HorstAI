@@ -7,7 +7,7 @@ import Logic.Field.CellType;
 import Logic.Snake.Direction;
 
 public class HamiltonPath {
-	private Pathfinding finder;
+	private Pathfinder finder;
 	private Field actualField;
 	private int[][] longWayMap;
 	public static int SPACE = 1;
@@ -16,7 +16,7 @@ public class HamiltonPath {
 	public HamiltonPath(Field field)
 	{
 		actualField = field;
-		finder = new Pathfinding(field);
+		finder = new Pathfinder(field);
 	}
 	public Node getCompleteMaxPath(Field f)
 	{
@@ -126,9 +126,9 @@ public class HamiltonPath {
 			last = p;
 
 			if(finder == null)
-				finder = new Pathfinding(tmpField);
+				finder = new Pathfinder(tmpField);
 			finder.getMinPath(startPoint, target, tmpField, snake.segments().get(0));
-			way = UtilFunctions.getMovePair(target,finder.getClosedList());
+			way = UtilFunctions.getNodeFromClosedList(target,finder.getClosedList());
 			if(way != null)
 				break;
 		}	
