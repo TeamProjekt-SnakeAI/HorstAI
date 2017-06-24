@@ -69,7 +69,8 @@ public class RandomBrain implements SnakeBrain {
 			newHead.y = 0;
 		}
 		
-		return gameInfo.field().cell(newHead) == CellType.SPACE || gameInfo.field().cell(newHead) == CellType.APPLE;
+		return gameInfo.field().cell(newHead) == CellType.SPACE || gameInfo.field().cell(newHead) == CellType.APPLE 
+				|| gameInfo.field().cell(newHead) == CellType.FEATUREWALL || gameInfo.field().cell(newHead) == CellType.CHANGESNAKE || gameInfo.field().cell(newHead) == CellType.CHANGEHEADTAIL;
 	}
 	
 	public static boolean isValidMovePossible(Snake snake, GameInfo gameInfo) {

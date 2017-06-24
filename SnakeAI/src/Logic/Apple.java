@@ -21,4 +21,12 @@ public class Apple {
 		snake.grow(grow);
 		snake.changeScore(score);
 	}
+
+	public double getScore() {
+		return score;
+	}
+
+	public Point getPosition() {
+		return position;
+	}
 }

@@ -52,7 +52,10 @@ Bis jetzt laufen folgende Dinge noch nicht optimal und benötigen Verbesserungen
 * WallFeature einbauen (check)
 
 ## ToDo-Liste 14.6. - 28.6.
-* Das
-* Wird 
+* Laufzeitverbesserungen
+* 2 Features einbauen (check)
+** Schlangen tauschen (check)
+** Kopf mit Schwanz tauschen (check)
+* KI Verbesserungen(NewBrain)
 * Noch
 * Entschieden

@@ -4,8 +4,9 @@
  * */
 
 package Logic;
-import java.util.Arrays;
+
 import java.util.HashMap;
+
 
 import Logic.Snake.Direction;
 
@@ -16,21 +17,31 @@ public class Field {
 		WALL,
 		APPLE,
 		SPACE,
-		FEATUREWALL
+		FEATUREWALL,
+		PORTAL,
+		CHANGESNAKE,
+		CHANGEHEADTAIL
 	}
 
 	private CellType[][] cells;
 	private int width;
 	private int height;
 	private HashMap<Point, Apple> apples;
-	private boolean hasFeatureWall;
+	
+	//0 = featureWall , 1 = changeSnake , 2 = changeHeadTail , 3 = isPortalActive
+	private boolean[] activeFeatures = { false , false , false , false };
+//	private boolean hasFeatureWall;
+//	private boolean hasChangeSnake;
+//	private boolean hasChangeHeadTail;
+//	private boolean isPortalActive;
 	
 	public Field(int width, int height) {
 		cells = new CellType[width][height];
 		this.width = width;
 		this.height = height;
 		apples = new HashMap<Point, Apple>();
-		hasFeatureWall = false;
+//		hasFeatureWall = false;
+//		isPortalActive=false;
 	}
 	
 	public static Field defaultField(int width, int height) {
@@ -61,6 +72,15 @@ public class Field {
 		apples.put(position,  apple);
 		cells[position.x][position.y] = CellType.APPLE;
 	}
+	public void addPortal(Portals portal) {
+		cells[portal.getPortal1().x][portal.getPortal1().y] = CellType.PORTAL;
+		cells[portal.getPortal2().x][portal.getPortal2().y] = CellType.PORTAL;
+	}
+	public void removePortal(Portals portal) {
+		cells[portal.getPortal1().x][portal.getPortal1().y] = CellType.SPACE;
+		cells[portal.getPortal2().x][portal.getPortal2().y] = CellType.SPACE;
+	}
+	
 	
 	public Apple getApple(Point position) {
 		return apples.get(position);
@@ -111,6 +131,16 @@ public class Field {
 					break;
 				case FEATUREWALL:
 					s += "+";
+					break;
+				case PORTAL:
+					s += "O";
+					break;
+				case CHANGESNAKE:
+					s += "%";
+					break;
+				case CHANGEHEADTAIL:
+					s += "=";
+					break;
 				default:
 					break;
 				
@@ -122,21 +152,49 @@ public class Field {
 		}
 		return s;
 	}
-	public HashMap<Point,Apple> getApples(){
+	public HashMap getApples(){
 		return apples;
 	}
 	public void setFeatureWall(Point position){
 		cells[position.x][position.y] = CellType.FEATUREWALL;
-		hasFeatureWall = true;
+		activeFeatures[0] = true;
+	}
+	public void setChangeSnake(Point position){
+		cells[position.x][position.y] = CellType.CHANGESNAKE;
+		activeFeatures[1] = true;
+	}
+	public void setChangeHeadTail(Point position){
+		cells[position.x][position.y] = CellType.CHANGEHEADTAIL;
+		activeFeatures[2] = true;
 	}
 	public void removeFeatureWall(Point position){
 		if(cells[position.x][position.y] == CellType.FEATUREWALL){
 			cells[position.x][position.y] = CellType.SPACE;
-			hasFeatureWall = false;
+			activeFeatures[0] = false;
+		}
+	}
+	public void removeChangeSnake(Point position){
+		if(cells[position.x][position.y] == CellType.CHANGESNAKE){
+			cells[position.x][position.y] = CellType.SPACE;
+			activeFeatures[1] = false;
+		}
+	}
+	public void removeChangeHeadTail(Point position){
+		if(cells[position.x][position.y] == CellType.CHANGEHEADTAIL){
+			cells[position.x][position.y] = CellType.SPACE;
+			activeFeatures[2] = false;
 		}
 	}
 	public boolean hasFeatureWall(){
-		return hasFeatureWall;
+		return activeFeatures[0];
+	}
+	public boolean hasChangeSnake()
+	{
+		return activeFeatures[1];
+	}
+	public boolean hasChangeHeadTail()
+	{
+		return activeFeatures[2];
 	}
 	//Sets a wall at a given point in a given direction, length 3
 	public void setWall(Point centerPoint, Direction direction){

@@ -58,13 +58,14 @@ public class NewBrain implements SnakeBrain {
 					return path3;
 				}
 				else{
+					System.out.println("No LongestPath");
 					// go away from apple
 					return farthestAwayFromApple(snake.headPosition(), target, gameInfo.field());
 				}
 			}
 		}
 		else{ // shortest path does not exist
-			
+			System.out.println("No Way");
 				// compute longest path from snake head to snake tail
 				Direction path3 = computeLongestPath(snake.headPosition(), snake.segments().get(0), gameInfo.field());
 				
@@ -79,11 +80,13 @@ public class NewBrain implements SnakeBrain {
 	
 	// get position of the one apple of the field
 	public Point getApple(Field field){
-		for(Entry<Point,Apple> entry : field.getApples().entrySet())
-		{
-			if(entry.getValue() != null)
-				return entry.getKey();
-		}
+		for(int x=0;x<field.width();x++)
+			for(int y=0;y<field.height();y++)
+			{
+				Point p = new Point(x,y);
+				if(field.cell(p).equals(CellType.APPLE))
+					return p;
+			}
 		return null;
 	}
 	
@@ -140,6 +143,22 @@ public class NewBrain implements SnakeBrain {
 				else if(field.cell(new Point(i,j)).equals(CellType.SNAKE))
 				{
 					shortWayMap[i][j] = SNAKE;
+				}
+				else if(field.cell(new Point(i,j)).equals(CellType.FEATUREWALL))
+				{
+					shortWayMap[i][j] = SPACE;
+				}
+				else if(field.cell(new Point(i,j)).equals(CellType.PORTAL))
+				{
+					shortWayMap[i][j] = SPACE;
+				}
+				else if(field.cell(new Point(i,j)).equals(CellType.CHANGESNAKE))
+				{
+					shortWayMap[i][j] = SPACE;
+				}
+				else if(field.cell(new Point(i,j)).equals(CellType.CHANGEHEADTAIL))
+				{
+					shortWayMap[i][j] = SPACE;
 				}
 			}
 		
@@ -205,16 +224,21 @@ public class NewBrain implements SnakeBrain {
 		// initializing both maps
 		for(int x = 0; x < field.width(); x++)
 			for(int y = 0; y < field.height(); y++){
-				visited[x][y] = false; // at beginning no point has been visited
-				if(field.cell(new Point(x,y)).equals(CellType.APPLE) || field.cell(new Point(x,y)).equals(CellType.SPACE))
+//				visited[x][y] = false; // at beginning no point has been visited
+				if(field.cell(new Point(x,y)).equals(CellType.APPLE) || field.cell(new Point(x,y)).equals(CellType.SPACE)  || field.cell(new Point(x,y)).equals(CellType.CHANGEHEADTAIL)
+						 || field.cell(new Point(x,y)).equals(CellType.FEATUREWALL)  || field.cell(new Point(x,y)).equals(CellType.PORTAL)  || field.cell(new Point(x,y)).equals(CellType.CHANGESNAKE))
 					map[x][y] = 1; // point is of type apple or space, can be entered
 				else
 					map[x][y] = 0; // point is of type snake or wall, so cannot be entered
 			}
-		
+		if(start.equals(target))
+			target.x+=1;
 		// compute the longest path of points from start to target
+		System.out.println("start: "+start);
+		System.out.println("target: "+target);
 		List<Point> path = computeLongestPath(start, target, map, visited);
-		
+		System.out.println("Size: "+map.length * map[0].length);
+		System.out.println(path.size());
 		if(!path.isEmpty() && path.size() > 1) // longest path exists
 			return getDirection(path.get(0), path.get(1)); // get following point of start point from path to calculate the first direction
 		
@@ -229,12 +253,14 @@ public class NewBrain implements SnakeBrain {
 		
 		// start point is also target point, path has already been found
 		if(start.equals(target)){
+			System.out.println("return Target");
 			path.add(start);
 			return path;
 		}
 		
 		// start point is not valid (out of field, an obstacle, already visited)
 		if(start.x < 0 || start.x >= 30 || start.y < 0 || start.y >= 20 || map[start.x][start.y] == 0 || visited[start.x][start.y]){
+			System.out.println("return Null");
 			return null;
 		}
 		
@@ -262,6 +288,7 @@ public class NewBrain implements SnakeBrain {
 		// backtracking
 		visited[start.x][start.y] = false;
 		
+		System.out.println("return done?");
 		return path;
 	}
 	

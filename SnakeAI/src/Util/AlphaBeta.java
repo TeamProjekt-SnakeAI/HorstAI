@@ -25,6 +25,15 @@ public class AlphaBeta {
 //	public AlphaBeta(int[] evalStuff) {
 //		evalSituation = evalStuff;
 //	}
+	
+//FEHLER: TODO	
+//	Exception in thread "Thread-6" java.lang.NullPointerException
+//	at Util.AlphaBeta.gameEnd(AlphaBeta.java:262)
+//	at Util.AlphaBeta.max(AlphaBeta.java:66)
+//	at Util.AlphaBeta.alphaBeta(AlphaBeta.java:50)
+//	at Brains.HorstAI.nextDirection(HorstAI.java:77)
+//	at Logic.BrainThread.run(BrainThread.java:20)
+	
 	/**
 	 * Berechnet AlphaBetaPruning für das aktuelle Spielfeld
 	 * @param field 	aktuelles Spielfeld

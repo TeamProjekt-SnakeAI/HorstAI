@@ -74,7 +74,7 @@ public class HorstAI implements SnakeBrain {
 		Direction move = null;
 		
 		//Berechne AlphaBeta-Pruning für die aktuelle Position
-		alphaBeta.alphaBeta(gameInfo.field(), mySnake, enemySnake,14);
+		alphaBeta.alphaBeta(gameInfo.field(), mySnake, enemySnake,4);
 
 		//Können wir direkt gewinnen? -> folge diesem "Gewinnpfad"
 		if(alphaBeta.directionScores.get(alphaBeta.bestMove) != null && alphaBeta.bestScore > 1000)

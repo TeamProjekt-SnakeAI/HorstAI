@@ -2,18 +2,17 @@ package UI;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
+import java.util.Random;
 
-import Brains.HorstAI;
 import Brains.RandomBrain;
 import Logic.Apple;
 import Logic.Field;
 import Logic.Field.CellType;
 import Logic.Game;
-import Logic.GameInfo;
 import Logic.Point;
 import Logic.Snake;
 import Logic.SnakeBrain;
-import PrototypKIs.NewBrain;
+import PrototypKIs.BrainMaster;
 import javafx.animation.Animation;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
@@ -23,9 +22,7 @@ import javafx.event.EventHandler;
 import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
-import javafx.scene.control.Button;
 import javafx.scene.control.ScrollPane;
-import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import javafx.util.Duration;
@@ -36,6 +33,7 @@ public class MainWindow extends Application {
 	private int cellWidth;
 	private Canvas canvas;
 	private Game game;
+	private Random rnd = new Random();
 	
     public static void main(String[] args) {
         launch(args);
@@ -57,12 +55,13 @@ public class MainWindow extends Application {
 		startPositions.add(start1);
 		startPositions.add(start2);
 		ArrayList<SnakeBrain> brains = new ArrayList<SnakeBrain>();
-		brains.add(new HorstAI());
+		brains.add(new BrainMaster());
 		brains.add(new RandomBrain());
 		ArrayList<Color> colors = new ArrayList<Color>();
 		colors.add(Color.YELLOWGREEN);
 		colors.add(Color.BLUEVIOLET);
-		game = new Game(brains, startPositions, colors, field, 1, 0.005);
+		double[] probabilitys = {1, 0.005, 1, 1};
+		game = new Game(brains, startPositions, colors, field, probabilitys);
 		//game.run();Apple
 		
 		//move intervall of the snakes
@@ -111,6 +110,32 @@ public class MainWindow extends Application {
 					gc.fillRect(x*cellWidth, y*cellWidth, (x+1)*cellWidth, (y+1)*cellWidth);
 					gc.setFill(Color.RED);
 					gc.fillRoundRect(x*cellWidth+6, y*cellWidth+6, cellWidth-12, cellWidth-12,10,10);
+					break;
+				case PORTAL:
+					gc.setStroke(Color.CYAN);
+					gc.strokeOval(x*cellWidth, y*cellWidth, 10, 20);
+					break;
+				case CHANGESNAKE:
+					int xPos = x*cellWidth;
+					int yPos = y*cellWidth;
+					double[] xPoints = {xPos+7,xPos+7,xPos+15,xPos+23,xPos+23,xPos+15};
+					double[] yPoints = {yPos+9,yPos+17,yPos+25,yPos+17,yPos+9,yPos+1};
+					gc.setFill(Color.YELLOW);
+					gc.fillPolygon(xPoints, yPoints, 6);
+					gc.setStroke(Color.ORANGE);
+					gc.setLineWidth(2);
+					gc.strokePolygon(xPoints, yPoints, 6);
+					break;
+				case CHANGEHEADTAIL:
+					xPos = x*cellWidth;
+					yPos = y*cellWidth;
+					double[] xPoints2 = {xPos+7,xPos+7,xPos+15,xPos+23,xPos+23,xPos+15};
+					double[] yPoints2 = {yPos+9,yPos+17,yPos+25,yPos+17,yPos+9,yPos+1};
+					gc.setFill(Color.DARKBLUE);
+					gc.fillPolygon(xPoints2, yPoints2, 6);
+					gc.setStroke(Color.BLUE);
+					gc.strokePolygon(xPoints2, yPoints2, 6);
+					gc.setLineWidth(5);
 					break;
 				case SNAKE:
 					gc.setFill(Color.GREEN);

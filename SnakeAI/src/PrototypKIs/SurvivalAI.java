@@ -34,11 +34,13 @@ public class SurvivalAI implements SnakeBrain {
 		if(finder == null)
 			finder = new Pathfinding(gameInfo.field());
 		Point target = null;
-		for(Entry<Point,Apple> entry : gameInfo.field().getApples().entrySet())
-		{
-			target = entry.getKey();
-			break;
-		}
+		for(int x=0;x<gameInfo.field().width();x++)
+			for(int y=0;y<gameInfo.field().height();y++)
+			{
+				Point p = new Point(x,y);
+				if(gameInfo.field().cell(p).equals(CellType.APPLE))
+					target = p;
+			}
 		Node path = null;
 		if(target != null)
 			path = finder.getMinPath(snake.headPosition(),target , gameInfo.field(), snake.segments().get(0));
