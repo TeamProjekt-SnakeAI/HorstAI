@@ -153,9 +153,8 @@ public class BrainMaster implements SnakeBrain{
 		{
 			//Wir sind näher am Apfel!
 			//Berechne kuerzesten Weg zum Ziel
-			Node path = finder.getMinPath(snake, eatable[0],gameInfo.field());
-			System.out.println(path.getPath());
 			System.out.println("hie2r"+ snake.headPosition());
+			Node path = finder.getMinPath(snake, eatable[0],gameInfo.field());
 			//Gibt es keinen Pfad dorthin?
 			if(path != null)
 			{	
@@ -176,8 +175,8 @@ public class BrainMaster implements SnakeBrain{
 				{
 					//Jap! Dann lass uns da hin gehen
 					//Berechne kuerzesten Weg zum Ziel
-					Node path = finder.getMinPath(snake, eatable[2],gameInfo.field());
 					System.out.println("hier3");
+					Node path = finder.getMinPath(snake, eatable[2],gameInfo.field());
 					//Gibt es keinen Pfad dorthin?
 					if(path != null)
 					{	
@@ -194,7 +193,7 @@ public class BrainMaster implements SnakeBrain{
 		//Wenn wir bis jetzt noch keinen Weg gefunden haben, sollten wir auf Zeit spielen
 		if(eatable[1] != null)
 		{
-			Node path = finder.getMinPath(snake, eatable[2],gameInfo.field());
+			Node path = finder.getMinPath(snake, eatable[1],gameInfo.field());
 			System.out.println("hier4");
 			//Gibt es keinen Pfad dorthin?
 			if(path != null)

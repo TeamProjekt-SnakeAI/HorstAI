@@ -40,6 +40,7 @@ public class PathFinder {
 		closedList.clear();
 		actualField = field;
 		Node start = new Node(null,startPoint,0,0);
+		System.out.println(target);
 		calcShortWayMap(target,actualField);
 		if(UtilFunctions.getDistance(startPoint, snakeTail) > 1)
 			blockingMap[snakeTail.x][snakeTail.y]=1;

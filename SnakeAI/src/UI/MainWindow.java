@@ -60,7 +60,7 @@ public class MainWindow extends Application {
 		ArrayList<Color> colors = new ArrayList<Color>();
 		colors.add(Color.YELLOWGREEN);
 		colors.add(Color.BLUEVIOLET);
-		double[] probabilitys = {1, 0.005, 1, 1};
+		double[] probabilitys = {1, 0.005, 0.002, 0.002};
 		game = new Game(brains, startPositions, colors, field, probabilitys);
 		//game.run();Apple
 		
