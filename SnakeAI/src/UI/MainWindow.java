@@ -23,6 +23,7 @@ import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.ScrollPane;
+import javafx.scene.image.Image;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import javafx.util.Duration;
@@ -34,6 +35,8 @@ public class MainWindow extends Application {
 	private Canvas canvas;
 	private Game game;
 	private Random rnd = new Random();
+	private Image changeSnakes = new Image(getClass().getClassLoader().getResourceAsStream("res/changeSnakes.png"));
+	private Image reverseDir = new Image(getClass().getClassLoader().getResourceAsStream("res/reverseDirection.png"));
 	
     public static void main(String[] args) {
         launch(args);
@@ -60,7 +63,7 @@ public class MainWindow extends Application {
 		ArrayList<Color> colors = new ArrayList<Color>();
 		colors.add(Color.YELLOWGREEN);
 		colors.add(Color.BLUEVIOLET);
-		double[] probabilitys = {1, 0.005, 0.002, 0.002};
+		double[] probabilitys = {1, 0.005, 1, 1};
 		game = new Game(brains, startPositions, colors, field, probabilitys);
 		//game.run();Apple
 		
@@ -122,22 +125,24 @@ public class MainWindow extends Application {
 					int yPos = y*cellWidth;
 					double[] xPoints = {xPos+7,xPos+7,xPos+15,xPos+23,xPos+23,xPos+15};
 					double[] yPoints = {yPos+9,yPos+17,yPos+25,yPos+17,yPos+9,yPos+1};
-					gc.setFill(Color.YELLOW);
-					gc.fillPolygon(xPoints, yPoints, 6);
-					gc.setStroke(Color.ORANGE);
-					gc.setLineWidth(2);
-					gc.strokePolygon(xPoints, yPoints, 6);
+					gc.drawImage(changeSnakes, xPos, yPos);
+//					gc.setFill(Color.YELLOW);
+//					gc.fillPolygon(xPoints, yPoints, 6);
+//					gc.setStroke(Color.ORANGE);
+//					gc.setLineWidth(2);
+//					gc.strokePolygon(xPoints, yPoints, 6);
 					break;
 				case CHANGEHEADTAIL:
 					xPos = x*cellWidth;
 					yPos = y*cellWidth;
 					double[] xPoints2 = {xPos+7,xPos+7,xPos+15,xPos+23,xPos+23,xPos+15};
 					double[] yPoints2 = {yPos+9,yPos+17,yPos+25,yPos+17,yPos+9,yPos+1};
-					gc.setFill(Color.DARKBLUE);
-					gc.fillPolygon(xPoints2, yPoints2, 6);
-					gc.setStroke(Color.BLUE);
-					gc.strokePolygon(xPoints2, yPoints2, 6);
-					gc.setLineWidth(5);
+//					gc.setFill(Color.DARKBLUE);
+//					gc.fillPolygon(xPoints2, yPoints2, 6);
+//					gc.setStroke(Color.BLUE);
+//					gc.strokePolygon(xPoints2, yPoints2, 6);
+//					gc.setLineWidth(5);
+					gc.drawImage(reverseDir, xPos, yPos);
 					break;
 				case SNAKE:
 					gc.setFill(Color.GREEN);
