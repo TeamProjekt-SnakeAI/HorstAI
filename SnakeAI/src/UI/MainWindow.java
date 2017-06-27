@@ -2,7 +2,6 @@ package UI;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
-import java.util.Random;
 
 import Brains.RandomBrain;
 import Logic.Apple;
@@ -12,7 +11,6 @@ import Logic.Game;
 import Logic.Point;
 import Logic.Snake;
 import Logic.SnakeBrain;
-import PrototypKIs.BrainMaster;
 import javafx.animation.Animation;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
@@ -34,7 +32,6 @@ public class MainWindow extends Application {
 	private int cellWidth;
 	private Canvas canvas;
 	private Game game;
-	private Random rnd = new Random();
 	private Image changeSnakes = new Image(getClass().getClassLoader().getResourceAsStream("res/changeSnakes.png"));
 	private Image reverseDir = new Image(getClass().getClassLoader().getResourceAsStream("res/reverseDirection.png"));
 	private Image appleImg = new Image(getClass().getClassLoader().getResourceAsStream("res/apple.png"));
@@ -59,8 +56,8 @@ public class MainWindow extends Application {
 		startPositions.add(start1);
 		startPositions.add(start2);
 		ArrayList<SnakeBrain> brains = new ArrayList<SnakeBrain>();
-		brains.add(new BrainMaster());
-		brains.add(new BrainMaster());
+		brains.add(new RandomBrain());
+		brains.add(new RandomBrain());
 		ArrayList<Color> colors = new ArrayList<Color>();
 		colors.add(Color.YELLOWGREEN);
 		colors.add(Color.BLUEVIOLET);
@@ -125,25 +122,11 @@ public class MainWindow extends Application {
 				case CHANGESNAKE:
 					int xPos = x*cellWidth;
 					int yPos = y*cellWidth;
-					double[] xPoints = {xPos+7,xPos+7,xPos+15,xPos+23,xPos+23,xPos+15};
-					double[] yPoints = {yPos+9,yPos+17,yPos+25,yPos+17,yPos+9,yPos+1};
 					gc.drawImage(changeSnakes, xPos, yPos);
-//					gc.setFill(Color.YELLOW);
-//					gc.fillPolygon(xPoints, yPoints, 6);
-//					gc.setStroke(Color.ORANGE);
-//					gc.setLineWidth(2);
-//					gc.strokePolygon(xPoints, yPoints, 6);
 					break;
 				case CHANGEHEADTAIL:
 					xPos = x*cellWidth;
 					yPos = y*cellWidth;
-					double[] xPoints2 = {xPos+7,xPos+7,xPos+15,xPos+23,xPos+23,xPos+15};
-					double[] yPoints2 = {yPos+9,yPos+17,yPos+25,yPos+17,yPos+9,yPos+1};
-//					gc.setFill(Color.DARKBLUE);
-//					gc.fillPolygon(xPoints2, yPoints2, 6);
-//					gc.setStroke(Color.BLUE);
-//					gc.strokePolygon(xPoints2, yPoints2, 6);
-//					gc.setLineWidth(5);
 					gc.drawImage(reverseDir, xPos, yPos);
 					break;
 				case SNAKE:

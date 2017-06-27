@@ -1,8 +1,6 @@
 package PrototypKIs;
 
 import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Random;
 
 import Logic.Field;
@@ -14,7 +12,6 @@ import Util.AlphaBeta;
 import Util.HamiltonPath;
 import Util.Node;
 import Util.PathFinder;
-import Util.Pathfinding;
 import Util.UtilFunctions;
 import Logic.SnakeBrain;
 import Logic.Field.CellType;
@@ -44,7 +41,6 @@ public class BrainMaster implements SnakeBrain{
 	
 	@Override
 	public Direction nextDirection(GameInfo gameInfo, Snake snake) {
-//		System.out.println("init!!!");
 		//Initialisiere alle nötigen Variablen, falls diese noch nicht initialisiert wurden
 		init(gameInfo,snake);
 		if(firstRound)
@@ -52,17 +48,14 @@ public class BrainMaster implements SnakeBrain{
 			firstRound = false;
 			return Direction.RIGHT;
 		}
-//		System.out.println("init done");
 		//Gibt es das Schlangentausch Feature und unsere Schlange ist min. 9 lang?
 		if(eatable[2] != null && snake.segments().size() >= 9)
 		{
 			//Auf zum Sieg! Einrollen um den Schlangentausch
-			System.out.println("SIEG!");
 			if(UtilFunctions.getDistance(eatable[2], snake.headPosition()) == 1)
 			{
 				//Okay einkreisen von hier!
 				Direction dir = UtilFunctions.getDirection(snake.headPosition(), eatable[2]);
-				System.out.println("Distance Low: "+ dir);
 				switch(dir)
 				{
 				case UP:
@@ -103,7 +96,6 @@ public class BrainMaster implements SnakeBrain{
 					}
 				}
 				
-				System.out.println("Distance Low: "+ dir);
 				switch(dir)
 				{
 				case UP:
@@ -147,13 +139,11 @@ public class BrainMaster implements SnakeBrain{
 			}
 			
 		}
-		System.out.println("hier1");
 		if(UtilFunctions.getDistance(mySnake.headPosition(),eatable[0]) <= 
 				UtilFunctions.getDistance(enemySnake.headPosition(),eatable[0]))
 		{
 			//Wir sind näher am Apfel!
 			//Berechne kuerzesten Weg zum Ziel
-			System.out.println("hie2r"+ snake.headPosition());
 			Node path = finder.getMinPath(snake, eatable[0],gameInfo.field());
 			//Gibt es keinen Pfad dorthin?
 			if(path != null)
@@ -162,7 +152,6 @@ public class BrainMaster implements SnakeBrain{
 				while(path.getFrom() != null && !path.getFrom().getActual().equals(snake.headPosition()))
 					path = path.getFrom();	
 				
-				System.out.println("Direction: "+UtilFunctions.getDirection(path.getFrom().getActual(),path.getActual()));
 				return UtilFunctions.getDirection(path.getFrom().getActual(),path.getActual());				
 			}
 		}
@@ -175,12 +164,10 @@ public class BrainMaster implements SnakeBrain{
 				{
 					//Jap! Dann lass uns da hin gehen
 					//Berechne kuerzesten Weg zum Ziel
-					System.out.println("hier3");
 					Node path = finder.getMinPath(snake, eatable[2],gameInfo.field());
 					//Gibt es keinen Pfad dorthin?
 					if(path != null)
 					{	
-						System.out.println(path.getPath());
 						//Wir haben einen Pfad
 						while(path.getFrom() != null && !path.getFrom().getActual().equals(snake.headPosition()))
 							path = path.getFrom();	
@@ -194,7 +181,6 @@ public class BrainMaster implements SnakeBrain{
 		if(eatable[1] != null)
 		{
 			Node path = finder.getMinPath(snake, eatable[1],gameInfo.field());
-			System.out.println("hier4");
 			//Gibt es keinen Pfad dorthin?
 			if(path != null)
 			{	
@@ -205,16 +191,14 @@ public class BrainMaster implements SnakeBrain{
 				return UtilFunctions.getDirection(path.getFrom().getActual(),path.getActual());				
 			}
 		}
-		System.out.println("dann hier");
+
 		Direction move = hPath.get(snake.headPosition());
 		if(move!= null && isMoveValid(move, snake, gameInfo))
 			return move;
-		System.out.println("hier");
 		return randomMove(gameInfo, snake);
 	}
 	private void init(GameInfo info, Snake snake)
 	{
-//		System.out.println("init1");
 		tempField = new Field(info.field().width(),info.field().height());
 		for(int x=0;x<tempField.width();x++)
 		{
@@ -236,9 +220,7 @@ public class BrainMaster implements SnakeBrain{
 			hFinder = new HamiltonPath(info.field());
 		if(alphaBeta == null)
 			alphaBeta = new AlphaBeta();
-				
-//		System.out.println("init2");
-		
+					
 		if(firstRound)
 			return;
 		//Initialize mySnake and EnemySnake
@@ -259,7 +241,6 @@ public class BrainMaster implements SnakeBrain{
 		if(hPointToIndex == null || hPath == null)
 		{
 			Node hamiltonPath = hFinder.getCompleteMaxPath(Field.defaultField(tempField.width(), tempField.height()));
-//			System.out.println(hamiltonPath.getPath());
 			if(hamiltonPath != null)
 			{
 				hPointToIndex = new HashMap<>();
@@ -283,7 +264,6 @@ public class BrainMaster implements SnakeBrain{
 				}
 			}
 		}
-//		System.out.println("init3");
 	
 		//Find all eatable Stuff
 		getItems(info.field(),snake.headPosition());
