@@ -37,6 +37,7 @@ public class MainWindow extends Application {
 	private Random rnd = new Random();
 	private Image changeSnakes = new Image(getClass().getClassLoader().getResourceAsStream("res/changeSnakes.png"));
 	private Image reverseDir = new Image(getClass().getClassLoader().getResourceAsStream("res/reverseDirection.png"));
+	private Image appleImg = new Image(getClass().getClassLoader().getResourceAsStream("res/apple.png"));
 	
     public static void main(String[] args) {
         launch(args);
@@ -59,7 +60,7 @@ public class MainWindow extends Application {
 		startPositions.add(start2);
 		ArrayList<SnakeBrain> brains = new ArrayList<SnakeBrain>();
 		brains.add(new BrainMaster());
-		brains.add(new RandomBrain());
+		brains.add(new BrainMaster());
 		ArrayList<Color> colors = new ArrayList<Color>();
 		colors.add(Color.YELLOWGREEN);
 		colors.add(Color.BLUEVIOLET);
@@ -111,8 +112,9 @@ public class MainWindow extends Application {
 				case APPLE:
 					gc.setFill(Color.GREEN);
 					gc.fillRect(x*cellWidth, y*cellWidth, (x+1)*cellWidth, (y+1)*cellWidth);
-					gc.setFill(Color.RED);
-					gc.fillRoundRect(x*cellWidth+6, y*cellWidth+6, cellWidth-12, cellWidth-12,10,10);
+					gc.drawImage(appleImg, x*cellWidth, y*cellWidth);
+//					gc.setFill(Color.RED);
+//					gc.fillRoundRect(x*cellWidth+6, y*cellWidth+6, cellWidth-12, cellWidth-12,10,10);
 					break;
 				case PORTAL:
 					gc.setFill(Color.BLACK);
