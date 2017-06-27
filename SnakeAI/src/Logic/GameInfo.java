@@ -21,5 +21,7 @@ public class GameInfo {
 	public ArrayList<Snake> snakes() {
 		return game.getSnakes();
 	}
-
+	public Portals getPortal(){
+        return game.getPortal();
+}
 }

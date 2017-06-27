@@ -30,7 +30,9 @@ public class Game {
 	public ArrayList<Snake> getSnakes() {
 		return snakes;
 	}
-
+	public Portals getPortal(){
+        return portal;
+}
 	public Field getField() {
 		return field;
 	}
