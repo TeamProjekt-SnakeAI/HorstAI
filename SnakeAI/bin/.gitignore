@@ -1,5 +1,7 @@
-/res/
-/UI/
-/PrototypKIs/
 /Brains/
 /Logic/
+/PrototypKIs/
+/UI/
+/res/
+/UnitTests/
+/Util/

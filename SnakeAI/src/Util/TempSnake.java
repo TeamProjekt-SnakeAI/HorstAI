@@ -19,6 +19,18 @@ public class TempSnake
 	private boolean alive;
 	private String name;
 	
+	public TempSnake(Point[] points)
+	{
+		this.segments = new LinkedList<Point>();
+		this.grow = 0;
+		for(Point p : points)
+		{
+			segments.add(p);
+		}
+		this.name = "Test Snake";
+		this.alive = true;
+	}
+	
 	public TempSnake(Snake snake, String name) {
 		this.segments = new LinkedList<Point>();
 		this.grow = 0;

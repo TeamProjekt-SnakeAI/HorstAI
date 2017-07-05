@@ -57,7 +57,7 @@ public class Snake {
 		thread.start();
 		long starttime =  ManagementFactory.getThreadMXBean().getThreadCpuTime(id);
 		System.out.println(starttime);
-		while(thread.isAlive() && ManagementFactory.getThreadMXBean().getThreadCpuTime(id) - starttime < 2000000) {
+		while(thread.isAlive() ) {
 			try {
 				Thread.sleep(5);
 			} catch (InterruptedException e) {

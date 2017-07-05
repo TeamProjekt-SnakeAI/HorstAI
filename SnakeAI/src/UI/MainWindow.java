@@ -3,6 +3,8 @@ package UI;
 import java.util.ArrayList;
 import java.util.LinkedList;
 
+
+import Brains.HorstAI;
 import Brains.RandomBrain;
 import Logic.Apple;
 import Logic.Field;
@@ -11,6 +13,7 @@ import Logic.Game;
 import Logic.Point;
 import Logic.Snake;
 import Logic.SnakeBrain;
+import PrototypKIs.BrainMaster;
 import javafx.animation.Animation;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
@@ -56,12 +59,12 @@ public class MainWindow extends Application {
 		startPositions.add(start1);
 		startPositions.add(start2);
 		ArrayList<SnakeBrain> brains = new ArrayList<SnakeBrain>();
-		brains.add(new RandomBrain());
-		brains.add(new RandomBrain());
+		brains.add(new HorstAI());
+		brains.add(new BrainMaster());
 		ArrayList<Color> colors = new ArrayList<Color>();
 		colors.add(Color.YELLOWGREEN);
 		colors.add(Color.BLUEVIOLET);
-		double[] probabilitys = {1, 0.005, 1, 1};
+		double[] probabilitys = {1, 0.005, 0.002, 0.002};
 		game = new Game(brains, startPositions, colors, field, probabilitys);
 		//game.run();Apple
 		
@@ -93,6 +96,8 @@ public class MainWindow extends Application {
         primaryStage.setWidth(1000);
         primaryStage.setHeight(700);
         primaryStage.show();
+        
+        
     }
     
     public void gameUpdate() {

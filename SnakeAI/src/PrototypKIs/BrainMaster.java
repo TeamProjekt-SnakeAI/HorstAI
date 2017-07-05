@@ -41,12 +41,38 @@ public class BrainMaster implements SnakeBrain{
 	
 	@Override
 	public Direction nextDirection(GameInfo gameInfo, Snake snake) {
-		//Initialisiere alle nötigen Variablen, falls diese noch nicht initialisiert wurden
+		//Initialisiere alle nï¿½tigen Variablen, falls diese noch nicht initialisiert wurden
 		init(gameInfo,snake);
 		if(firstRound)
 		{
 			firstRound = false;
 			return Direction.RIGHT;
+		}
+		//KÃ¶nnen wir WÃ¤nde setzen?
+		if(snake.getCanSetWall())
+		{
+			for (int i = -1; i <= 1; i += 2)
+			{
+				Point head = enemySnake.headPosition();
+				if (head.x + i < 29 && head.x + i >= 1)
+				{
+					Point next = new Point(head.x +i,head.y);
+					if(gameInfo.field().cell(next) == CellType.SPACE)
+					{
+						snake.setWall(next, Direction.UP);
+						break;
+					}
+				}
+				if (head.y + i < 19 && head.y + i >= 1)		
+				{
+					Point next = new Point(head.x +i,head.y);
+					if(gameInfo.field().cell(next) == CellType.SPACE)
+					{
+						snake.setWall(next, Direction.UP);
+						break;
+					}
+				}
+			}
 		}
 		//Gibt es das Schlangentausch Feature und unsere Schlange ist min. 9 lang?
 		if(eatable[2] != null && snake.segments().size() >= 9)
@@ -142,7 +168,7 @@ public class BrainMaster implements SnakeBrain{
 		if(UtilFunctions.getDistance(mySnake.headPosition(),eatable[0]) <= 
 				UtilFunctions.getDistance(enemySnake.headPosition(),eatable[0]))
 		{
-			//Wir sind näher am Apfel!
+			//Wir sind nï¿½her am Apfel!
 			//Berechne kuerzesten Weg zum Ziel
 			Node path = finder.getMinPath(snake, eatable[0],gameInfo.field());
 			//Gibt es keinen Pfad dorthin?
@@ -157,7 +183,7 @@ public class BrainMaster implements SnakeBrain{
 		}
 		else
 		{
-			//Mist! Der Gegner ist näher am Apfel. Können wir die Schlangen tauschen? bevor er beim Apfel ist?
+			//Mist! Der Gegner ist nï¿½her am Apfel. Kï¿½nnen wir die Schlangen tauschen? bevor er beim Apfel ist?
 			if(eatable[2] != null)
 			{
 				if(UtilFunctions.getDistance(enemySnake.headPosition(),eatable[0]) > UtilFunctions.getDistance(mySnake.headPosition(),eatable[2]))

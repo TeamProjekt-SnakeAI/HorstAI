@@ -24,4 +24,9 @@ public class GameInfo {
 	public Portals getPortal(){
         return game.getPortal();
 }
+
+	public Portals getPortals() {
+		// TODO Auto-generated method stub
+		return game.getPortal();
+	}
 }

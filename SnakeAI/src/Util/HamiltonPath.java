@@ -1,5 +1,7 @@
 package Util;
 
+import java.util.Arrays;
+
 import Logic.Field;
 import Logic.Point;
 import Logic.Snake;
@@ -110,29 +112,29 @@ public class HamiltonPath {
 		}
 		return way;
 	}
-	public Node getMaxPath(Point startPoint, Field field, Snake snake) {
+	public Node getMaxPath(Point startPoint, Field field, TempSnake snake) {
 		actualField = field;
 		Point target = snake.segments().get(0);
 		Node way = null;
 		Field tmpField = UtilFunctions.getFieldCopy(field);
-		Point last = null;
+		Point last = snake.segments().get(0);
 		for(Point p : snake.segments())
 		{
-			if(last != null)
-				tmpField.setCell(CellType.SNAKE, last);
-				
 			calcDistanceMap(p);
-			tmpField.setCell(CellType.SPACE, p);
+			
 			last = p;
+			for(Point p2 : snake.segments())
+			{	
+				longWayMap[p2.x][p2.y] = 100;
+			}
 
 			if(finder == null)
 				finder = new Pathfinding(tmpField);
-			finder.getMinPath(startPoint, target, tmpField, snake.segments().get(0));
-			way = UtilFunctions.getMovePair(target,finder.getClosedList());
+			finder.getMinPath(startPoint, p, tmpField, p);
+			way = UtilFunctions.getMovePair(p,finder.getClosedList());
 			if(way != null)
 				break;
 		}	
-		 System.out.println("END-Point: " + last);
 		Node tempWay = way;
 		while(tempWay != null)
 		{

@@ -1,5 +1,6 @@
 package Util;
 
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
@@ -31,7 +32,7 @@ public class Pathfinding {
 	
 	//Heuristik values
 	public static int SPACE = 1;
-	public static int WALL = 100;
+	public static int WALL = 9;
 	public boolean STALLING = false;
 	
 	public Pathfinding(Field field)
@@ -47,6 +48,7 @@ public class Pathfinding {
 		Node start = new Node(null,startPoint,0,0);
 		if(shortWayMap == null)
 			calcShortWayMap(target,actualField);
+		
 		if(UtilFunctions.getDistance(startPoint, snakeTail) > 1)
 			shortWayMap[snakeTail.x][snakeTail.y]=1;
 		// Calculate A*

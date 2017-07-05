@@ -5,10 +5,13 @@
 
 package Logic;
 import Logic.Portals;
+
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.Random;
+
 import javafx.scene.paint.Color;
+import Brains.HorstAI;
 import Brains.RandomBrain;
 
 
@@ -73,25 +76,256 @@ public class Game {
 
 	public static void main(String[] args) {
 		Field field = Field.defaultField(30, 20);
-		field.addApple(new Apple(50, 1, new Point(1,2)), new Point(1,2));
-		field.addApple(new Apple(50, 1, new Point(3,2)), new Point(3,2));
-		field.addApple(new Apple(50, 1, new Point(2,1)), new Point(2,1));
-		field.addApple(new Apple(50, 1, new Point(2,3)), new Point(2,3));
 		
-		Point start1 = new Point(2, 2);
-		Point start2 = new Point(27, 17);
-		ArrayList<Point> startPositions = new ArrayList<Point>();
-		startPositions.add(start1);
-		startPositions.add(start2);
-		ArrayList<SnakeBrain> brains = new ArrayList<SnakeBrain>();
-		brains.add(new RandomBrain());
-		brains.add(new RandomBrain());
-		ArrayList<Color> colors = new ArrayList<Color>();
-		colors.add(Color.YELLOWGREEN);
-		colors.add(Color.AZURE);
-		double[] probabilitys = {0.1, 0.005, 0.003, 0.003};
-		Game game = new Game(brains, startPositions, colors, field, probabilitys);
-		game.run();
+		
+//		
+//		int winsA = 0, winsB = 0;
+//		for (int i = 0;i < 100;i++) {
+//			Point start1 = new Point(2, 2);
+//			Point start2 = new Point(27, 17);
+//			ArrayList<Point> startPositions = new ArrayList<Point>();
+//			startPositions.add(start1);
+//			startPositions.add(start2);
+//			ArrayList<SnakeBrain> brains = new ArrayList<SnakeBrain>();
+//			brains.add(new SuperBrain());
+//			brains.add(new AwesomeBrain());
+//			ArrayList<Color> colors = new ArrayList<Color>();
+//			colors.add(Color.YELLOWGREEN);
+//			colors.add(Color.AZURE);
+//			double[] probabilitys = {0.1, 0.005, 0.003, 0.003};
+//			Game game = new Game(brains, startPositions, colors, field, probabilitys);
+//			game.run();
+//			
+//			if (game.getSnakes().get(0).segments().size() > game.getSnakes().get(1).segments().size()) {
+//				winsA++;
+//			} else {
+//				winsB++;
+//			}
+//		}
+//		System.out.println("SuperBrain vs AwesomeBrain");
+//		System.out.println(winsA + " SuperBrain");
+//		System.out.println(winsB + " AwesomeBrain");
+//		winsA = 0; winsB = 0;
+//		
+//		for (int i = 0;i < 100;i++) {
+//			Point start1 = new Point(2, 2);
+//			Point start2 = new Point(27, 17);
+//			ArrayList<Point> startPositions = new ArrayList<Point>();
+//			startPositions.add(start1);
+//			startPositions.add(start2);
+//			ArrayList<SnakeBrain> brains = new ArrayList<SnakeBrain>();
+//			brains.add(new SuperBrain());
+//			brains.add(new NCageBrain());
+//			ArrayList<Color> colors = new ArrayList<Color>();
+//			colors.add(Color.YELLOWGREEN);
+//			colors.add(Color.AZURE);
+//			double[] probabilitys = {0.1, 0.005, 0.003, 0.003};
+//			Game game = new Game(brains, startPositions, colors, field, probabilitys);
+//			game.run();
+//			
+//			if (game.getSnakes().get(0).segments().size() > game.getSnakes().get(1).segments().size()) {
+//				winsA++;
+//			} else {
+//				winsB++;
+//			}
+//		}
+//		System.out.println("SuperBrain vs NCageBrain");
+//		System.out.println(winsA + " SuperBrain");
+//		System.out.println(winsB + " NCageBrain");
+//		winsA = 0; winsB = 0;
+//		
+//		for (int i = 0;i < 100;i++) {
+//			Point start1 = new Point(2, 2);
+//			Point start2 = new Point(27, 17);
+//			ArrayList<Point> startPositions = new ArrayList<Point>();
+//			startPositions.add(start1);
+//			startPositions.add(start2);
+//			ArrayList<SnakeBrain> brains = new ArrayList<SnakeBrain>();
+//			brains.add(new SuperBrain());
+//			brains.add(new NotSoRandomBrain1());
+//			ArrayList<Color> colors = new ArrayList<Color>();
+//			colors.add(Color.YELLOWGREEN);
+//			colors.add(Color.AZURE);
+//			double[] probabilitys = {0.1, 0.005, 0.003, 0.003};
+//			Game game = new Game(brains, startPositions, colors, field, probabilitys);
+//			game.run();
+//			
+//			if (game.getSnakes().get(0).segments().size() > game.getSnakes().get(1).segments().size()) {
+//				winsA++;
+//			} else {
+//				winsB++;
+//			}
+//		}
+//		System.out.println("SuperBrain vs NotSoRandomBrain1");
+//		System.out.println(winsA + " SuperBrain");
+//		System.out.println(winsB + " NotSoRandomBrain1");
+//		winsA = 0; winsB = 0;
+//		
+//		for (int i = 0;i < 100;i++) {
+//			Point start1 = new Point(2, 2);
+//			Point start2 = new Point(27, 17);
+//			ArrayList<Point> startPositions = new ArrayList<Point>();
+//			startPositions.add(start1);
+//			startPositions.add(start2);
+//			ArrayList<SnakeBrain> brains = new ArrayList<SnakeBrain>();
+//			brains.add(new SuperBrain());
+//			brains.add(new HorstAI());
+//			ArrayList<Color> colors = new ArrayList<Color>();
+//			colors.add(Color.YELLOWGREEN);
+//			colors.add(Color.AZURE);
+//			double[] probabilitys = {0.1, 0.005, 0.003, 0.003};
+//			Game game = new Game(brains, startPositions, colors, field, probabilitys);
+//			game.run();
+//			
+//			if (game.getSnakes().get(0).segments().size() > game.getSnakes().get(1).segments().size()) {
+//				winsA++;
+//			} else {
+//				winsB++;
+//			}
+//		}
+//		System.out.println("SuperBrain vs HorstAI");
+//		System.out.println(winsA + " SuperBrain");
+//		System.out.println(winsB + " HorstAI");
+//		winsA = 0; winsB = 0;
+//		
+//		
+//		for (int i = 0;i < 100;i++) {
+//			Point start1 = new Point(2, 2);
+//			Point start2 = new Point(27, 17);
+//			ArrayList<Point> startPositions = new ArrayList<Point>();
+//			startPositions.add(start1);
+//			startPositions.add(start2);
+//			ArrayList<SnakeBrain> brains = new ArrayList<SnakeBrain>();
+//			brains.add(new AwesomeBrain());
+//			brains.add(new NCageBrain());
+//			ArrayList<Color> colors = new ArrayList<Color>();
+//			colors.add(Color.YELLOWGREEN);
+//			colors.add(Color.AZURE);
+//			double[] probabilitys = {0.1, 0.005, 0.003, 0.003};
+//			Game game = new Game(brains, startPositions, colors, field, probabilitys);
+//			game.run();
+//			
+//			if (game.getSnakes().get(0).segments().size() > game.getSnakes().get(1).segments().size()) {
+//				winsA++;
+//			} else {
+//				winsB++;
+//			}
+//		}
+//		System.out.println("Awesome vs NCageBrain");
+//		System.out.println(winsA + " Awesome");
+//		System.out.println(winsB + " NCageBrain");
+//		winsA = 0; winsB = 0;
+//		
+//		for (int i = 0;i < 100;i++) {
+//			Point start1 = new Point(2, 2);
+//			Point start2 = new Point(27, 17);
+//			ArrayList<Point> startPositions = new ArrayList<Point>();
+//			startPositions.add(start1);
+//			startPositions.add(start2);
+//			ArrayList<SnakeBrain> brains = new ArrayList<SnakeBrain>();
+//			brains.add(new AwesomeBrain());
+//			brains.add(new NotSoRandomBrain1());
+//			ArrayList<Color> colors = new ArrayList<Color>();
+//			colors.add(Color.YELLOWGREEN);
+//			colors.add(Color.AZURE);
+//			double[] probabilitys = {0.1, 0.005, 0.003, 0.003};
+//			Game game = new Game(brains, startPositions, colors, field, probabilitys);
+//			game.run();
+//			
+//			if (game.getSnakes().get(0).segments().size() > game.getSnakes().get(1).segments().size()) {
+//				winsA++;
+//			} else {
+//				winsB++;
+//			}
+//		}
+//		System.out.println("Awesome vs NotSoRandomBrain1");
+//		System.out.println(winsA + " Awesome");
+//		System.out.println(winsB + " NotSoRandomBrain1");
+//		winsA = 0; winsB = 0;
+//		
+//		for (int i = 0;i < 100;i++) {
+//			Point start1 = new Point(2, 2);
+//			Point start2 = new Point(27, 17);
+//			ArrayList<Point> startPositions = new ArrayList<Point>();
+//			startPositions.add(start1);
+//			startPositions.add(start2);
+//			ArrayList<SnakeBrain> brains = new ArrayList<SnakeBrain>();
+//			brains.add(new AwesomeBrain());
+//			brains.add(new HorstAI());
+//			ArrayList<Color> colors = new ArrayList<Color>();
+//			colors.add(Color.YELLOWGREEN);
+//			colors.add(Color.AZURE);
+//			double[] probabilitys = {0.1, 0.005, 0.003, 0.003};
+//			Game game = new Game(brains, startPositions, colors, field, probabilitys);
+//			game.run();
+//			
+//			if (game.getSnakes().get(0).segments().size() > game.getSnakes().get(1).segments().size()) {
+//				winsA++;
+//			} else {
+//				winsB++;
+//			}
+//		}
+//		System.out.println("AwesomeBrain vs HorstAI");
+//		System.out.println(winsA + " AwesomeBrain");
+//		System.out.println(winsB + " HorstAI");
+//		winsA = 0; winsB = 0;
+//		
+//		for (int i = 0;i < 100;i++) {
+//			Point start1 = new Point(2, 2);
+//			Point start2 = new Point(27, 17);
+//			ArrayList<Point> startPositions = new ArrayList<Point>();
+//			startPositions.add(start1);
+//			startPositions.add(start2);
+//			ArrayList<SnakeBrain> brains = new ArrayList<SnakeBrain>();
+//			brains.add(new NCageBrain());
+//			brains.add(new NotSoRandomBrain1());
+//			ArrayList<Color> colors = new ArrayList<Color>();
+//			colors.add(Color.YELLOWGREEN);
+//			colors.add(Color.AZURE);
+//			double[] probabilitys = {0.1, 0.005, 0.003, 0.003};
+//			Game game = new Game(brains, startPositions, colors, field, probabilitys);
+//			game.run();
+//			
+//			if (game.getSnakes().get(0).segments().size() > game.getSnakes().get(1).segments().size()) {
+//				winsA++;
+//			} else {
+//				winsB++;
+//			}
+//		}
+//		System.out.println("NCage vs NotSoRandomBrain1");
+//		System.out.println(winsA + " NCage");
+//		System.out.println(winsB + " NotSoRandomBrain1");
+//		winsA = 0; winsB = 0;
+//		
+//		for (int i = 0;i < 100;i++) {
+//			Point start1 = new Point(2, 2);
+//			Point start2 = new Point(27, 17);
+//			ArrayList<Point> startPositions = new ArrayList<Point>();
+//			startPositions.add(start1);
+//			startPositions.add(start2);
+//			ArrayList<SnakeBrain> brains = new ArrayList<SnakeBrain>();
+//			brains.add(new NCageBrain());
+//			brains.add(new HorstAI());
+//			ArrayList<Color> colors = new ArrayList<Color>();
+//			colors.add(Color.YELLOWGREEN);
+//			colors.add(Color.AZURE);
+//			double[] probabilitys = {0.1, 0.005, 0.003, 0.003};
+//			Game game = new Game(brains, startPositions, colors, field, probabilitys);
+//			game.run();
+//			
+//			if (game.getSnakes().get(0).segments().size() > game.getSnakes().get(1).segments().size()) {
+//				winsA++;
+//			} else {
+//				winsB++;
+//			}
+//		}
+//		System.out.println("NCage vs HorstAI");
+//		System.out.println(winsA + " NCage");
+//		System.out.println(winsB + " HorstAI");
+//		winsA = 0; winsB = 0;
+//		
+		
+		
 	}
 	
 	
