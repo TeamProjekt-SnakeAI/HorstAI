@@ -129,7 +129,7 @@ public class HorstAI implements SnakeBrain{
 			}
 			if(targetPoint == null)
 				targetPoint = eatable[2];
-			Node path = finder.getMinPath(snake, targetPoint,gameInfo.field());
+			Node path = finder.getMinPath(snake, targetPoint,gameInfo.field(),gameInfo.getPortal());
 			//Gibt es keinen Pfad dorthin?
 			if(path != null)
 			{	
@@ -146,7 +146,7 @@ public class HorstAI implements SnakeBrain{
 		{
 			//Wir sind näher am Apfel!
 			//Berechne kuerzesten Weg zum Ziel
-			Node path = finder.getMinPath(snake, eatable[0],gameInfo.field());
+			Node path = finder.getMinPath(snake, eatable[0],gameInfo.field(),gameInfo.getPortal());
 			//Gibt es keinen Pfad dorthin?
 			if(path != null)
 			{	
@@ -166,7 +166,7 @@ public class HorstAI implements SnakeBrain{
 				{
 					//Jap! Dann lass uns da hin gehen
 					//Berechne kuerzesten Weg zum Ziel
-					Node path = finder.getMinPath(snake, eatable[2],gameInfo.field());
+					Node path = finder.getMinPath(snake, eatable[2],gameInfo.field(),gameInfo.getPortal());
 					//Gibt es keinen Pfad dorthin?
 					if(path != null)
 					{	
@@ -182,7 +182,7 @@ public class HorstAI implements SnakeBrain{
 		//Wenn wir bis jetzt noch keinen Weg gefunden haben, sollten wir auf Zeit spielen
 		if(eatable[1] != null)
 		{
-			Node path = finder.getMinPath(snake, eatable[1],gameInfo.field());
+			Node path = finder.getMinPath(snake, eatable[1],gameInfo.field(),gameInfo.getPortal());
 			//Gibt es keinen Pfad dorthin?
 			if(path != null)
 			{	

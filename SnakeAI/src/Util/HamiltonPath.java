@@ -112,7 +112,7 @@ public class HamiltonPath {
 		}
 		return way;
 	}
-	public Node getMaxPath(Point startPoint, Field field, TempSnake snake) {
+	public Node getMaxPath(Point startPoint, Field field, TempSnake snake, TempSnake enemySnake) {
 		actualField = field;
 		Point target = snake.segments().get(0);
 		Node way = null;
@@ -123,6 +123,10 @@ public class HamiltonPath {
 			calcDistanceMap(p);
 			
 			last = p;
+			for(Point p2 : enemySnake.segments())
+			{	
+				longWayMap[p2.x][p2.y] = 100;
+			}
 			for(Point p2 : snake.segments())
 			{	
 				longWayMap[p2.x][p2.y] = 100;

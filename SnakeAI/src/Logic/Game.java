@@ -405,7 +405,6 @@ public class Game {
 			{
 			case SPACE: field.setCell(Field.CellType.SNAKE, headPosition); break;
 			case APPLE:
-				System.out.println(headPosition);
 				Apple apple = field.getApple(headPosition);
 				apple.apply(snake);
 				field.removeApple(headPosition);
@@ -451,7 +450,7 @@ public class Game {
 			}
 
 			//drawing of the field and everything
-			field.draw();
+//			field.draw();
 			
 
 			//next player

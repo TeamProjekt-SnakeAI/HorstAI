@@ -61,4 +61,20 @@ public class Node{
 		}
 		return ret.substring(0, ret.length()-4);
 	}
+	public int lengthToDest(Point p)
+	{
+		Node temp = this;
+		int dist = 0;
+		while(temp != null)
+		{
+			dist++;
+			if(temp.getActual().equals(p))
+				break;
+			temp = temp.getFrom();
+		}
+		if(temp == null)
+			return 999;
+		return dist;
+		
+	}
 }

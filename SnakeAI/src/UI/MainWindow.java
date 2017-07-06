@@ -59,12 +59,12 @@ public class MainWindow extends Application {
 		startPositions.add(start1);
 		startPositions.add(start2);
 		ArrayList<SnakeBrain> brains = new ArrayList<SnakeBrain>();
-		brains.add(new HorstAI());
+		brains.add(new BrainMaster());
 		brains.add(new BrainMaster());
 		ArrayList<Color> colors = new ArrayList<Color>();
 		colors.add(Color.YELLOWGREEN);
 		colors.add(Color.BLUEVIOLET);
-		double[] probabilitys = {1, 0.005, 0.002, 0.002};
+		double[] probabilitys = {1, 0.005, 0.0001, 0.003};
 		game = new Game(brains, startPositions, colors, field, probabilitys);
 		//game.run();Apple
 		

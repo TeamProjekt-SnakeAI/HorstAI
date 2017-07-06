@@ -16,6 +16,7 @@ import Util.AlphaBeta;
 import Util.HamiltonPath;
 import Util.Node;
 import Util.Pathfinding;
+import Util.TempSnake;
 import Util.UtilFunctions;
 import Logic.SnakeBrain;
 
@@ -237,7 +238,7 @@ public class HorstProto implements SnakeBrain {
 			{
 				tempField.setCell(CellType.WALL, snakePoint);
 			}
-			Node path = hFinder.getMaxPath(snake.headPosition(), tempField, snake);
+			Node path = hFinder.getMaxPath(snake.headPosition(), tempField, new TempSnake(snake), new TempSnake(enemySnake));
 			if(path != null)
 			{
 				while(path != null && path.getFrom() != null && !path.getFrom().getActual().equals(snake.headPosition()))
