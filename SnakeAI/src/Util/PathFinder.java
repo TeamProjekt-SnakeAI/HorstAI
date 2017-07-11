@@ -66,7 +66,7 @@ public class PathFinder {
 //				System.out.println("closedList: " + Arrays.toString(closedList.toArray()));
 //				System.out.println("current: " + current);
 //			}
-			if(field.cell(current).equals(CellType.PORTAL))
+			if(field.cell(current).equals(CellType.PORTAL) && portals.isActive())
 			{
 				if(current.equals(portal1))
 				{

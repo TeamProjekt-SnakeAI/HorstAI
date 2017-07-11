@@ -30,6 +30,10 @@ public class Snake {
 		DOWN
 	}
 	
+	public SnakeBrain getBrain() {
+		return brain;
+	}
+
 	public Snake(Point startPosition, GameInfo gameInfo, SnakeBrain brain, Color color) {
 		super();
 		this.score = 0;
@@ -49,6 +53,7 @@ public class Snake {
 	}
 	
 	public void grow(int n) {
+		changeScore(10*n);
 		grow += n;
 	}
 	
@@ -151,7 +156,7 @@ public class Snake {
 
 	public double getScore() {
 		// TODO Auto-generated method stub
-		return 0;
+		return score;
 	}
 
 	public void setHead(Point portal) {

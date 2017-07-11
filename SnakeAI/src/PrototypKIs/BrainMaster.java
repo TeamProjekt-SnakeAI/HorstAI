@@ -203,7 +203,7 @@ public class BrainMaster implements SnakeBrain{
 				}			
 			}
 		}
-		if(UtilFunctions.getDistance(mySnake.headPosition(),eatable[0]) <= 
+		if(eatable[0] != null && UtilFunctions.getDistance(mySnake.headPosition(),eatable[0]) <= 
 				UtilFunctions.getDistance(enemySnake.headPosition(),eatable[0]))
 		{
 			//Wir sind n�her am Apfel!
@@ -222,7 +222,7 @@ public class BrainMaster implements SnakeBrain{
 		else
 		{
 			//Mist! Der Gegner ist n�her am Apfel. K�nnen wir die Schlangen tauschen? bevor er beim Apfel ist?
-			if(eatable[2] != null)
+			if(eatable[2] != null && eatable[0] != null)
 			{
 				if(UtilFunctions.getDistance(enemySnake.headPosition(),eatable[0]) > UtilFunctions.getDistance(mySnake.headPosition(),eatable[2]))
 				{

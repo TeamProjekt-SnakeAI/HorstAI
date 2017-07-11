@@ -3,9 +3,13 @@ package UI;
 import java.util.ArrayList;
 import java.util.LinkedList;
 
-
+import Brains.AwesomeBrain;
 import Brains.HorstAI;
+import Brains.NCageBrain;
+import Brains.NotSoRandomBrain1;
 import Brains.RandomBrain;
+import Brains.SuperBrain;
+import Brains.WallBrain;
 import Logic.Apple;
 import Logic.Field;
 import Logic.Field.CellType;
@@ -60,7 +64,7 @@ public class MainWindow extends Application {
 		startPositions.add(start2);
 		ArrayList<SnakeBrain> brains = new ArrayList<SnakeBrain>();
 		brains.add(new BrainMaster());
-		brains.add(new BrainMaster());
+		brains.add(new AwesomeBrain());
 		ArrayList<Color> colors = new ArrayList<Color>();
 		colors.add(Color.YELLOWGREEN);
 		colors.add(Color.BLUEVIOLET);
