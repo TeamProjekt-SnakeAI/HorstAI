@@ -91,7 +91,7 @@ public class Game {
 			startPositions.add(start2);
 			ArrayList<SnakeBrain> brains = new ArrayList<SnakeBrain>();
 			brains.add(new BrainMaster());
-			brains.add(new NCageBrain());
+			brains.add(new AwesomeBrain());
 			ArrayList<Color> colors = new ArrayList<Color>();
 			colors.add(Color.YELLOWGREEN);
 			colors.add(Color.AZURE);

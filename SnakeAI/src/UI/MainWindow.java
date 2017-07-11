@@ -100,8 +100,6 @@ public class MainWindow extends Application {
         primaryStage.setWidth(1000);
         primaryStage.setHeight(700);
         primaryStage.show();
-        
-        
     }
     
     public void gameUpdate() {
