@@ -82,6 +82,7 @@ public class BrainMaster implements SnakeBrain{
 			return Direction.RIGHT;
 		}
 		
+		wallDetection();
 		//Ist der Schlangenkoerper gerade in einem Portal?
 		if(gameInfo.getPortals().isActive())
 		{
@@ -128,27 +129,10 @@ public class BrainMaster implements SnakeBrain{
 		//TODO: Wall Feature hier einfuegen
 		if(mySnake.getCanSetWall())
 		{
-			for (int i = -1; i <= 1; i += 2)
+			int walls = wallDetection();
+			if(walls > 0 && !isSnakeCloserToTarget(eatable[Items.APPLE.getIndex()]))
 			{
-				Point head = enemySnake.headPosition();
-				if (head.x + i < 29 && head.x + i >= 1)
-				{
-					Point next = new Point(head.x +i,head.y);
-					if(info.field().cell(next) == CellType.SPACE)
-					{
-						mySnake.setWall(next, Direction.RIGHT);
-						break;
-					}
-				}
-				if (head.y + i < 19 && head.y + i >= 1)		
-				{
-					Point next = new Point(head.x +i,head.y);
-					if(info.field().cell(next) == CellType.SPACE)
-					{
-						mySnake.setWall(next, Direction.RIGHT);
-						break;
-					}
-				}
+				
 			}
 		}
 	}
@@ -283,6 +267,34 @@ public class BrainMaster implements SnakeBrain{
 	private void changeAltTarget()
 	{
 		currentAltTarget = ((++currentAltTarget)%altTargets.length);
+	}
+	private int wallDetection()
+	{
+		Point apple = eatable[Items.APPLE.value];
+		//   8         4         2         1
+		//[wallUp][wallRight][wallDown][wallLeft]
+		//Bsp.: 1101 => Wall oben,rechts und links
+		int wall = 0;
+		for (int i = -1; i <= 1; i += 2)
+		{
+			if (apple.x + i <= 29 && apple.x + i >= 0)
+			{
+				Point next = new Point(apple.x +i,apple.y);
+				if(info.field().cell(next) == CellType.WALL)
+				{
+					wall |= (i > 0?1:4);
+				}
+			}
+			if (apple.y + i <= 19 && apple.y + i >= 0)		
+			{
+				Point next = new Point(apple.x,apple.y+i);
+				if(info.field().cell(next) == CellType.WALL)
+				{
+					wall |= (i > 0?2:8);
+				}
+			}
+		}
+		return wall;
 	}
 	private void init(Snake snake)
 	{
