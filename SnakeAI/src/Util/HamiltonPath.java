@@ -15,13 +15,9 @@ public class HamiltonPath {
 	public static int SPACE = 1;
 	public static int WALL = 100;
 	
-	public HamiltonPath(Field field)
-	{
-		actualField = field;
-		finder = new Pathfinding(field);
-	}
 	public Node getCompleteMaxPath(Field f)
 	{
+		finder = new Pathfinding(f);
 		actualField = Field.defaultField(f.width(), f.height());
 		Node start = new Node(null,new Point(1,1),0,0);
 		Point target = new Point(1,2);

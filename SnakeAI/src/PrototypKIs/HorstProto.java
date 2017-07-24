@@ -25,7 +25,7 @@ import Logic.SnakeBrain;
 
 public class HorstProto implements SnakeBrain {
 	
-	//Wird vielleicht noch gebraucht um Features einheitlich abzugreifen (Jedes Feature implementiert ein Interface und wir können Objekte dieses Interfaces verwenden für die
+	//Wird vielleicht noch gebraucht um Features einheitlich abzugreifen (Jedes Feature implementiert ein Interface und wir kï¿½nnen Objekte dieses Interfaces verwenden fï¿½r die
 	// "eatable Objects"
 //	private PriorityQueue<ApplePos> apples = new PriorityQueue<>(new Comparator<ApplePos>(){
 //
@@ -61,7 +61,7 @@ public class HorstProto implements SnakeBrain {
 	//AlphaBeta
 	private AlphaBeta alphaBeta;
 	
-	//Konstruktor für genetischen Algorithmus um für evalSituation den besten Array zu ermitteln um Situationen zu bewerten
+	//Konstruktor fï¿½r genetischen Algorithmus um fï¿½r evalSituation den besten Array zu ermitteln um Situationen zu bewerten
 //	public HorstAI(int[] evalStuff)
 //	{
 //		alphaBeta = new AlphaBeta(evalStuff);
@@ -69,15 +69,15 @@ public class HorstProto implements SnakeBrain {
 	@Override
 	public Direction nextDirection(GameInfo gameInfo, Snake snake) {
 		
-		//Initialisiere alle nötigen Variablen, falls diese noch nicht initialisiert wurden
+		//Initialisiere alle nï¿½tigen Variablen, falls diese noch nicht initialisiert wurden
 		init(gameInfo,snake);
 		
 		Direction move = null;
 		
-		//Berechne AlphaBeta-Pruning für die aktuelle Position
+		//Berechne AlphaBeta-Pruning fï¿½r die aktuelle Position
 		alphaBeta.alphaBeta(gameInfo.field(), mySnake, enemySnake,4);
 
-		//Können wir direkt gewinnen? -> folge diesem "Gewinnpfad"
+		//Kï¿½nnen wir direkt gewinnen? -> folge diesem "Gewinnpfad"
 		if(alphaBeta.directionScores.get(alphaBeta.bestMove) != null && alphaBeta.bestScore > 1000)
 		{
 			return alphaBeta.bestMove;
@@ -143,7 +143,7 @@ public class HorstProto implements SnakeBrain {
 					
 					move = UtilFunctions.getDirection(path.getFrom().getActual(),path.getActual());
 					
-					//Ist der gewählte Pfad schlecht?
+					//Ist der gewï¿½hlte Pfad schlecht?
 //					if(alphaBeta.directionScores.get(move) != null && alphaBeta.directionScores.get(move) <= -9000)
 //					{
 ////					System.out.println("Death!!");
@@ -366,7 +366,7 @@ public class HorstProto implements SnakeBrain {
 		if(finder == null)
 			finder = new Pathfinding(info.field());
 		if(hFinder == null)
-			hFinder = new HamiltonPath(info.field());
+			hFinder = new HamiltonPath();
 		if(alphaBeta == null)
 			alphaBeta = new AlphaBeta();
 				

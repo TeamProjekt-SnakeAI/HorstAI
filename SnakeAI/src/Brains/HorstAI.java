@@ -242,7 +242,7 @@ public class HorstAI implements SnakeBrain{
 			}
 		}
 		//Wenn wir bis jetzt noch keinen Weg gefunden haben, sollten wir auf Zeit spielen:
-		//Können wir durch ein Portal unsere Schlange verkürzen?
+		//Kï¿½nnen wir durch ein Portal unsere Schlange verkï¿½rzen?
 		if(!passedPortal && gameInfo.getPortals().isActive() )
 		{
 			Point[] portals = {gameInfo.getPortals().getPortal1(),gameInfo.getPortals().getPortal2()};
@@ -261,7 +261,7 @@ public class HorstAI implements SnakeBrain{
 				}			
 			}
 		}
-		//Holen wir uns ein WallItem, falls wir noch keine setzen können
+		//Holen wir uns ein WallItem, falls wir noch keine setzen koennen
 		if(eatable[1] != null && !snake.getCanSetWall())
 		{
 			Node path = finder.getMinPath(snake, eatable[1],gameInfo.field(),gameInfo.getPortal());
@@ -275,7 +275,7 @@ public class HorstAI implements SnakeBrain{
 				return UtilFunctions.getDirection(path.getFrom().getActual(),path.getActual());				
 			}
 		}
-		//Können wir zu unserem AlternativZiel gehen?
+		//Kï¿½nnen wir zu unserem AlternativZiel gehen?
 		for(int i=0;i<4;i++)
 		{
 			if(!gameInfo.field().cell(altTargets[currentAltTarget]).equals(CellType.SNAKE) && 
@@ -307,10 +307,10 @@ public class HorstAI implements SnakeBrain{
 			currentAltTarget = ((++currentAltTarget)%4);
 		}
 		
-		//Wahrscheinlich haben wir uns eingeschlossen! Berechne den kürzesten Weg zum Schwanz
+		//Wahrscheinlich haben wir uns eingeschlossen! Berechne den kï¿½rzesten Weg zum Schwanz
 		if(hDirectionPath.isEmpty())
 		{
-			hFinder = new HamiltonPath(gameInfo.field());
+			hFinder = new HamiltonPath();
 			Node way = hFinder.getMaxPath(snake.headPosition(), gameInfo.field(), new TempSnake(snake), new TempSnake(enemySnake));
 //			System.out.println("First Direction: " + way.getActual() + " -> " + UtilFunctions.getDirection(way.getFrom().getActual(),way.getActual()));
 			while(way != null && way.getFrom() != null && !way.getActual().equals(snake.headPosition()))
@@ -351,7 +351,7 @@ public class HorstAI implements SnakeBrain{
 		if(finder == null)
 			finder = new PathFinder();
 		if(hFinder == null)
-			hFinder = new HamiltonPath(info.field());
+			hFinder = new HamiltonPath();
 		if(alphaBeta == null)
 			alphaBeta = new AlphaBeta();
 		if(altTargets == null)

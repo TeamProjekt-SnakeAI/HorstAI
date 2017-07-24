@@ -6,6 +6,7 @@
 package Logic;
 import java.lang.management.ManagementFactory;
 import java.lang.management.ThreadMXBean;
+import java.util.Collections;
 import java.util.LinkedList;
 
 import javafx.scene.paint.Color;
@@ -14,12 +15,14 @@ import javafx.scene.paint.Color;
 public class Snake {
 	private int score; //current score of this snake
 	private LinkedList<Point> segments; //snake segments, snake head is last element
-	private int grow; //tail of the snake isn't deletet while moving as long as grow is > 0
+	private int grow; //tail of the snake isn't deleted while moving as long as grow is > 0
 	private GameInfo gameInfo;
 	private SnakeBrain brain;
 	private boolean alive;
 	private Color color;
-	private boolean canSetWall; 
+	private boolean canSetWall;
+	private boolean isSpeededUp;
+	private int speedUpTicksLeft; //number ticks the speedup lasts
 	private BrainThread thread;
 	
 	//move directions
@@ -30,10 +33,6 @@ public class Snake {
 		DOWN
 	}
 	
-	public SnakeBrain getBrain() {
-		return brain;
-	}
-
 	public Snake(Point startPosition, GameInfo gameInfo, SnakeBrain brain, Color color) {
 		super();
 		this.score = 0;
@@ -45,6 +44,7 @@ public class Snake {
 		this.alive = true;
 		this.color = color;
 		this.canSetWall = false;
+		this.isSpeededUp = false;
 		this.thread = new BrainThread(brain, gameInfo, this);
 	}
 	
@@ -53,7 +53,6 @@ public class Snake {
 	}
 	
 	public void grow(int n) {
-		changeScore(10*n);
 		grow += n;
 	}
 	
@@ -61,8 +60,8 @@ public class Snake {
 		long id = thread.getId();
 		thread.start();
 		long starttime =  ManagementFactory.getThreadMXBean().getThreadCpuTime(id);
-		System.out.println(starttime);
-		while(thread.isAlive() ) {
+		//System.out.println(starttime);
+		while(thread.isAlive()) {
 			try {
 				Thread.sleep(5);
 			} catch (InterruptedException e) {
@@ -72,6 +71,13 @@ public class Snake {
 		}
 		if (thread.isAlive()) {
 			thread.stop();
+			String color = "";
+			if (this.color == Color.YELLOWGREEN) {
+				color = "yellowgreen";
+			} else if (this.color == Color.BLUEVIOLET) {
+				color = "blueviolet";
+			}
+			System.out.println(color + " snake considered to long which direction to take");
 		}
 		Snake.Direction direction = thread.nextMove();
 		
@@ -138,38 +144,63 @@ public class Snake {
 	public Color color() {
 		return color;
 	}
+	
 	//sets the attribute canSetWall to a given boolean
-	public void setCanSetWall(boolean newCanSetWall){
+	public void setCanSetWall(boolean newCanSetWall) {
 		canSetWall = newCanSetWall;
 	}
+	
 	//returns the attribute canSetwall
-	public boolean getCanSetWall(){
+	public boolean getCanSetWall() {
 		return canSetWall;
 	}
+	
 	//sets the wall on the field at a given point in a given direction, if the snake has recently eaten the feature "Wall"
-	public void setWall(Point centerPoint, Direction direction){
-		if(canSetWall){
+	public void setWall(Point centerPoint, Direction direction) {
+		if (canSetWall) {
 			gameInfo.field().setWall(centerPoint, direction);
 			setCanSetWall(false);
 		}
 	}
-
+	
+	// speeds the snake up
+	public void speedUp() {
+		isSpeededUp = true;
+		speedUpTicksLeft = 10;
+	}
+	
+	// returns, whether the snake is speeded up or not
+	public boolean isSpeededUp() {
+		return isSpeededUp;
+	}
+	
+	// returns, how many ticks the speedup lasts
+	public int getSpeedUpTicksLeft() {
+		return speedUpTicksLeft;
+	}
+	
+	// decrements speedUpTicksLeft
+	public void decSpeedUpTicksLeft() {
+		speedUpTicksLeft--;
+		if (speedUpTicksLeft <= 0) {
+			isSpeededUp = false;
+		}
+	}
+	
 	public double getScore() {
 		// TODO Auto-generated method stub
-		return score;
+		return 0;
 	}
-
+	
 	public void setHead(Point portal) {
 		segments.addLast(portal);	
 	}
-	public void switchHeadTail()
-	{
-		Point first = segments.get(0);
-		segments.set(0, segments.getLast());
-		segments.set(segments.size()-1, first);
+	
+	public void switchHeadTail() {
+		Collections.reverse(segments);
 	}
+	
 	public void setSegments(LinkedList<Point> segments) {
 		this.segments = segments;
 	}
-	
 }
