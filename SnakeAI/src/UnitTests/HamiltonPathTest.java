@@ -6,6 +6,7 @@ import org.junit.Test;
 
 import Logic.Field;
 import Logic.Point;
+import Logic.Portals;
 import Logic.Snake.Direction;
 import Logic.Field.CellType;
 import Util.AlphaBeta;
@@ -37,7 +38,8 @@ public class HamiltonPathTest {
 		for(Point p : snake.segments())
 			f.setCell(CellType.SNAKE, p);
 		HamiltonPath hpath = new HamiltonPath();
-		Node path = hpath.getMaxPath(snake.headPosition(), f, snake, snake);
+		Portals portal= new Portals();
+		Node path = hpath.getMaxPath(snake.headPosition(), f, snake, snake,portal);
 		assertEquals("Point [x=4, y=4] <- Point [x=4, y=5] <- Point [x=4, y=6] <- Point [x=3, y=6] <- Point [x=3, y=5]", path.getPath());
 	}
 	@Test
@@ -67,7 +69,8 @@ public class HamiltonPathTest {
 		for(Point p : snake.segments())
 			f.setCell(CellType.SNAKE, p);
 		HamiltonPath hpath = new HamiltonPath();
-		Node path = hpath.getMaxPath(snake.headPosition(), f, snake,snake);
+		Portals portal= new Portals();
+		Node path = hpath.getMaxPath(snake.headPosition(), f, snake,snake,portal);
 		assertEquals("Point [x=9, y=7] <- Point [x=9, y=8] <- Point [x=9, y=9] <- Point [x=9, y=10] <- Point [x=8, y=10] <- Point [x=8, y=9] <- Point [x=7, y=9] <- Point [x=7, y=8] <- Point [x=8, y=8]", path.getPath());
 	}
 	@Test
@@ -96,7 +99,10 @@ public class HamiltonPathTest {
 		for(Point p : snake.segments())
 			f.setCell(CellType.SNAKE, p);
 		HamiltonPath hpath = new HamiltonPath();
-		Node path = hpath.getMaxPath(snake.headPosition(), f, snake, snake);
+		Portals portal= new Portals();
+		Node path = hpath.getMaxPath(snake.headPosition(), f, snake, snake,portal);
+		System.out.println(path);
+		System.out.println(path.getPath());
 		assertEquals("Point [x=16, y=9] <- Point [x=16, y=10] <- Point [x=16, y=11] <- Point [x=15, y=11] <- Point [x=14, y=11] <- Point [x=13, y=11] <- Point [x=13, y=10] <- Point [x=14, y=10]", path.getPath());
 	}
 	public void testSnakeFormsSnail() {
@@ -137,7 +143,8 @@ public class HamiltonPathTest {
 		for(Point p : snake.segments())
 			f.setCell(CellType.SNAKE, p);
 		HamiltonPath hpath = new HamiltonPath();
-		Node path = hpath.getMaxPath(snake.headPosition(), f, snake, snake);
+		Portals portal= new Portals();
+		Node path = hpath.getMaxPath(snake.headPosition(), f, snake, snake,portal);
 		assertEquals("Point [x=15, y=8] <- Point [x=15, y=7] <- Point [x=16, y=7] <- Point [x=17, y=7] <- Point [x=17, y=8] <- Point [x=17, y=9] <- Point [x=17, y=10] <- Point [x=17, y=11] <- Point [x=17, y=12] <- Point [x=16, y=12] <- Point [x=15, y=12]", path.getPath());
 	}
 	@Test
@@ -207,9 +214,9 @@ public class HamiltonPathTest {
 		for(Point p : enemy.segments())
 			f.setCell(CellType.SNAKE, p);
 		HamiltonPath hpath = new HamiltonPath();
-		Node path = hpath.getMaxPath(snake.headPosition(), f, snake, enemy);
-		System.out.println(path.getPath());
-		assertEquals("Point [x=17, y=13] <- Point [x=17, y=14] <- Point [x=16, y=14] <- Point [x=16, y=15] <- Point [x=16, y=16] <- Point [x=16, y=17] <- Point [x=17, y=17] <- Point [x=18, y=17] <- Point [x=18, y=16] <- Point [x=17, y=16] <- Point [x=17, y=15] <- Point [x=18, y=15] <- Point [x=19, y=15] <- Point [x=20, y=15] <- Point [x=21, y=15] <- Point [x=22, y=15] <- Point [x=23, y=15] <- Point [x=24, y=15] <- Point [x=25, y=15] <- Point [x=26, y=15] <- Point [x=27, y=15] <- Point [x=28, y=15] <- Point [x=28, y=16] <- Point [x=28, y=17] <- Point [x=28, y=18] <- Point [x=27, y=18] <- Point [x=26, y=18] <- Point [x=25, y=18] <- Point [x=24, y=18] <- Point [x=23, y=18] <- Point [x=22, y=18] <- Point [x=21, y=18] <- Point [x=20, y=18] <- Point [x=20, y=17] <- Point [x=21, y=17] <- Point [x=22, y=17] <- Point [x=23, y=17] <- Point [x=24, y=17] <- Point [x=25, y=17] <- Point [x=26, y=17] <- Point [x=27, y=17] <- Point [x=27, y=16] <- Point [x=26, y=16] <- Point [x=25, y=16] <- Point [x=24, y=16] <- Point [x=23, y=16] <- Point [x=22, y=16] <- Point [x=21, y=16] <- Point [x=20, y=16] <- Point [x=19, y=16] <- Point [x=19, y=17] <- Point [x=19, y=18]", path.getPath());
+		Portals portal= new Portals();
+		Node path = hpath.getMaxPath(snake.headPosition(), f, snake, enemy,portal);
+		assertEquals("Point [x=17, y=13] <- Point [x=17, y=14] <- Point [x=16, y=14] <- Point [x=16, y=15] <- Point [x=16, y=16] <- Point [x=16, y=17] <- Point [x=17, y=17] <- Point [x=17, y=16] <- Point [x=17, y=15] <- Point [x=18, y=15] <- Point [x=19, y=15] <- Point [x=20, y=15] <- Point [x=21, y=15] <- Point [x=22, y=15] <- Point [x=23, y=15] <- Point [x=24, y=15] <- Point [x=25, y=15] <- Point [x=26, y=15] <- Point [x=27, y=15] <- Point [x=28, y=15] <- Point [x=28, y=16] <- Point [x=28, y=17] <- Point [x=28, y=18] <- Point [x=27, y=18] <- Point [x=26, y=18] <- Point [x=25, y=18] <- Point [x=24, y=18] <- Point [x=23, y=18] <- Point [x=22, y=18] <- Point [x=21, y=18] <- Point [x=20, y=18] <- Point [x=20, y=17] <- Point [x=21, y=17] <- Point [x=22, y=17] <- Point [x=23, y=17] <- Point [x=24, y=17] <- Point [x=25, y=17] <- Point [x=26, y=17] <- Point [x=27, y=17] <- Point [x=27, y=16] <- Point [x=26, y=16] <- Point [x=25, y=16] <- Point [x=24, y=16] <- Point [x=23, y=16] <- Point [x=22, y=16] <- Point [x=21, y=16] <- Point [x=20, y=16] <- Point [x=19, y=16] <- Point [x=18, y=16] <- Point [x=18, y=17] <- Point [x=19, y=17] <- Point [x=19, y=18]", path.getPath());
 	}
 	@Test
 	public void testSnakeAtCorner() {
@@ -237,7 +244,8 @@ public class HamiltonPathTest {
 		for(Point p : snake.segments())
 			f.setCell(CellType.SNAKE, p);
 		HamiltonPath hpath = new HamiltonPath();
-		Node path = hpath.getMaxPath(snake.headPosition(), f, snake,snake);
+		Portals portal= new Portals();
+		Node path = hpath.getMaxPath(snake.headPosition(), f, snake,snake,portal);
 		assertEquals("Point [x=5, y=18] <- Point [x=4, y=18] <- Point [x=4, y=17] <- Point [x=4, y=16] <- Point [x=4, y=15] <- Point [x=4, y=14] <- Point [x=4, y=13] <- Point [x=3, y=13] <- Point [x=3, y=14] <- Point [x=3, y=15] <- Point [x=3, y=16] <- Point [x=3, y=17] <- Point [x=3, y=18] <- Point [x=2, y=18] <- Point [x=1, y=18] <- Point [x=1, y=17] <- Point [x=2, y=17] <- Point [x=2, y=16] <- Point [x=1, y=16] <- Point [x=1, y=15] <- Point [x=2, y=15] <- Point [x=2, y=14] <- Point [x=1, y=14]", path.getPath());
 	}
 	
@@ -263,7 +271,8 @@ public class HamiltonPathTest {
 		for(Point p : snake.segments())
 			f.setCell(CellType.SNAKE, p);
 		HamiltonPath hpath = new HamiltonPath();
-		Node path = hpath.getMaxPath(snake.headPosition(), f, snake,snake);
+		Portals portal= new Portals();
+		Node path = hpath.getMaxPath(snake.headPosition(), f, snake,snake,portal);
 		assertEquals(Direction.UP,UtilFunctions.getDirection(path.getFrom().getActual(), path.getActual()));
 		path = path.getFrom();
 		assertEquals(Direction.UP,UtilFunctions.getDirection(path.getFrom().getActual(), path.getActual()));

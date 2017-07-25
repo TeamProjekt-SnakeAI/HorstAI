@@ -223,6 +223,18 @@ public class Portals{
      */
     private int calcPointDistance(Point point1, Point point2){
         return Math.abs(point1.x-point2.x)+ Math.abs(point1.y-point2.y);
-       }            
+       }  
+    
+    public void appearTest(Field field,Point a, Point b){
+        // set Portals to active
+        this.active=true;
+        // initialize new random time to live
+        ttl = 500;
+        // assign to new points
+        portal1 = a;
+        portal2 = b;      
+        // add the portals to the Field
+        field.addPortal(this);
+    }
  }
 

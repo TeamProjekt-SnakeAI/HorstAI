@@ -4,18 +4,15 @@
  * */
 
 package Logic;
-import Logic.Portals;
-
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Random;
 
+import Brains.HorstAI;
+import PrototypKIs.BrainMaster;
 import javafx.scene.paint.Color;
-//import Brains.AwesomeBrain;
-//import Brains.HorstAI;
-//import Brains.NCageBrain;
-//import Brains.NotSoRandomBrain1;
-import Brains.RandomBrain;
 //import Brains.SuperBrain;
 
 
@@ -87,22 +84,39 @@ public class Game {
 	}
 
 	public static void main(String[] args) {
-		Field field = Field.defaultField(30, 20);
-		
-		Point start1 = new Point(2, 2);
-		Point start2 = new Point(27, 17);
-		ArrayList<Point> startPositions = new ArrayList<Point>();
-		startPositions.add(start1);
-		startPositions.add(start2);
-		ArrayList<SnakeBrain> brains = new ArrayList<SnakeBrain>();
-		brains.add(new RandomBrain());
-		brains.add(new RandomBrain());
-		ArrayList<Color> colors = new ArrayList<Color>();
-		colors.add(Color.YELLOWGREEN);
-		colors.add(Color.AZURE);
-		double[] probabilitys = {0.1, 0.005, 0.003, 0.003, 0.003};
-		Game game = new Game(brains, startPositions, colors, field, probabilitys);
-		game.run();
+		HashMap<String,Integer> winMap = new HashMap<>();
+		for(int i=0;i<100;i++)
+		{
+			Field field = Field.defaultField(30, 20);
+			Point start1 = new Point(2, 2);
+			Point start2 = new Point(27, 17);
+			ArrayList<Point> startPositions = new ArrayList<Point>();
+			startPositions.add(start1);
+			startPositions.add(start2);
+			ArrayList<SnakeBrain> brains = new ArrayList<SnakeBrain>();
+			brains.add(new HorstAI());
+			brains.add(new BrainMaster());
+			ArrayList<Color> colors = new ArrayList<Color>();
+			colors.add(Color.YELLOWGREEN);
+			colors.add(Color.AZURE);
+			double[] probabilitys = {1, 0.005, 0.003, 0.003, 0.003, 0.004};
+			Game game = new Game(brains, startPositions, colors, field, probabilitys);
+			if(winMap.isEmpty())
+			{
+				for(Snake s : game.snakes)
+					winMap.put(s.getBrain().getClass().toString(),0);
+			}
+			game.run();
+			for(Snake s : game.snakes)
+			{
+				if(s.alive())
+				{
+					winMap.put(s.getBrain().getClass().toString(), winMap.get(s.getBrain().getClass().toString())+1);
+					System.out.println(Arrays.toString(winMap.entrySet().toArray()));
+				}
+			}
+		}
+		System.out.println(Arrays.toString(winMap.entrySet().toArray()));
 	}
 	
 	
@@ -141,7 +155,7 @@ public class Game {
             updateField(snake);
             
 			//drawing of the field and everything
-			field.draw();
+//			field.draw();
 			
 			//next player, same player if player has 2nd move
 			if (snake.isSpeededUp() && !snakeDone2ndMove) {
@@ -233,7 +247,7 @@ public class Game {
 			} else if (snake.color() == Color.BLUEVIOLET) {
 				color = "blueviolet";
 			}
-			System.out.println(color + " snake died because of hitting a " + causeOfDeath);
+//			System.out.println(color + " snake died because of hitting a " + causeOfDeath);
 			
 			field.setCell(Field.CellType.SNAKE, headPosition);
 			snake.kill();

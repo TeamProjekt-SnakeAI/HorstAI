@@ -86,6 +86,8 @@ public class Snake {
 		
 		//calculate new head position
 		Point newHead = new Point(head.x, head.y);
+		if(direction == null)
+			System.out.println(brain.getClass());
 		switch(direction) {
 		case DOWN:
 			newHead.y++;
@@ -203,4 +205,16 @@ public class Snake {
 	public void setSegments(LinkedList<Point> segments) {
 		this.segments = segments;
 	}
+
+	@Override
+	public String toString() {
+		return "Snake [score=" + score + ", brain=" + brain.getClass() + ", alive=" + alive + "]";
+	}
+
+	public SnakeBrain getBrain() {
+		return brain;
+	}
+
+
+	
 }

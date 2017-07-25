@@ -3,6 +3,7 @@ package UI;
 import java.util.ArrayList;
 import java.util.LinkedList;
 
+import Brains.HorstAI;
 import Brains.RandomBrain;
 import Logic.Apple;
 import Logic.Field;
@@ -36,6 +37,7 @@ public class MainWindow extends Application {
 	private Image changeSnakes = new Image(getClass().getClassLoader().getResourceAsStream("res/changeSnakes.png"));
 	private Image reverseDir = new Image(getClass().getClassLoader().getResourceAsStream("res/reverseDirection.png"));
 	private Image appleImg = new Image(getClass().getClassLoader().getResourceAsStream("res/rubinApfel.png"));
+	private Image speedImg = new Image(getClass().getClassLoader().getResourceAsStream("res/speedUp.png"));
 	
     public static void main(String[] args) {
         launch(args);
@@ -57,12 +59,12 @@ public class MainWindow extends Application {
 		startPositions.add(start1);
 		startPositions.add(start2);
 		ArrayList<SnakeBrain> brains = new ArrayList<SnakeBrain>();
-		brains.add(new BrainMaster());
-		brains.add(new BrainMaster());
+		brains.add(new HorstAI());
+		brains.add(new HorstAI());
 		ArrayList<Color> colors = new ArrayList<Color>();
-		colors.add(Color.YELLOWGREEN);
+		colors.add(Color.RED);
 		colors.add(Color.BLUEVIOLET);
-		double[] probabilitys = {1, 0.005, 0.0001, 0.003};
+		double[] probabilitys = {1, 0.005, 0.0001, 0.003,0.45};
 		game = new Game(brains, startPositions, colors, field, probabilitys);
 		//game.run();Apple
 		
@@ -124,6 +126,11 @@ public class MainWindow extends Application {
 					int xPos = x*cellWidth;
 					int yPos = y*cellWidth;
 					gc.drawImage(changeSnakes, xPos, yPos);
+					break;
+				case SPEEDUP:
+					xPos = x*cellWidth;
+					yPos = y*cellWidth;
+					gc.drawImage(speedImg, xPos, yPos);
 					break;
 				case CHANGEHEADTAIL:
 					xPos = x*cellWidth;

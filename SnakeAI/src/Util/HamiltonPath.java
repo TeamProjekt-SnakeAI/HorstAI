@@ -1,15 +1,13 @@
 package Util;
 
-import java.util.Arrays;
 
 import Logic.Field;
 import Logic.Point;
-import Logic.Snake;
-import Logic.Field.CellType;
+import Logic.Portals;
 import Logic.Snake.Direction;
 
 public class HamiltonPath {
-	private Pathfinding finder;
+	private PathFinder finder;
 	private Field actualField;
 	private int[][] longWayMap;
 	public static int SPACE = 1;
@@ -17,7 +15,7 @@ public class HamiltonPath {
 	
 	public Node getCompleteMaxPath(Field f)
 	{
-		finder = new Pathfinding(f);
+		finder = new PathFinder();
 		actualField = Field.defaultField(f.width(), f.height());
 		Node start = new Node(null,new Point(1,1),0,0);
 		Point target = new Point(1,2);
@@ -108,17 +106,13 @@ public class HamiltonPath {
 		}
 		return way;
 	}
-	public Node getMaxPath(Point startPoint, Field field, TempSnake snake, TempSnake enemySnake) {
+	public Node getMaxPath(Point startPoint, Field field, TempSnake snake, TempSnake enemySnake, Portals portals) {
 		actualField = field;
-		Point target = snake.segments().get(0);
 		Node way = null;
 		Field tmpField = UtilFunctions.getFieldCopy(field);
-		Point last = snake.segments().get(0);
 		for(Point p : snake.segments())
 		{
 			calcDistanceMap(p);
-			
-			last = p;
 			for(Point p2 : enemySnake.segments())
 			{	
 				longWayMap[p2.x][p2.y] = 100;
@@ -129,12 +123,14 @@ public class HamiltonPath {
 			}
 
 			if(finder == null)
-				finder = new Pathfinding(tmpField);
-			finder.getMinPath(startPoint, p, tmpField, p);
+				finder = new PathFinder();
+			finder.ignorePortals = true;
+			finder.getMinPathWithTail(snake, p, tmpField, portals, p);
+//			finder.getMinPath(snake, p, tmpField, portals);
 			way = UtilFunctions.getMovePair(p,finder.getClosedList());
 			if(way != null)
 				break;
-		}	
+		}
 		Node tempWay = way;
 		while(tempWay != null)
 		{
@@ -229,26 +225,22 @@ public class HamiltonPath {
 		}
 		return false;
 	}
-	private void calcDistanceMap(Point target) {
+	public void calcDistanceMap(Point target) {
 		longWayMap = new int[actualField.width()][actualField.height()];
 		for (int i = 0; i < actualField.width(); i++)
 			for (int j = 0; j < actualField.height(); j++)
 			{
-				if(actualField.cell(new Point(i,j)).equals(CellType.APPLE))
+				switch(actualField.cell(new Point(i,j)))
 				{
-					longWayMap[i][j] = SPACE;
-				}
-				else if(actualField.cell(new Point(i,j)).equals(CellType.SPACE))
-				{
-					longWayMap[i][j] = SPACE;
-				}
-				else if(actualField.cell(new Point(i,j)).equals(CellType.WALL))
-				{
-					longWayMap[i][j] = WALL;
-				}
-				else if(actualField.cell(new Point(i,j)).equals(CellType.SNAKE))
-				{
-					longWayMap[i][j] = SPACE;
+				case PORTAL:
+				case APPLE:
+				case SPACE:
+				case CHANGESNAKE:
+				case CHANGEHEADTAIL:
+				case SPEEDUP:
+				case SNAKE:
+				case FEATUREWALL: longWayMap[i][j] = SPACE; break;
+				case WALL: longWayMap[i][j] = WALL; break;
 				}
 			}
 	}

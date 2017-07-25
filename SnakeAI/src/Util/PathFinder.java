@@ -1,7 +1,5 @@
 package Util;
 
-import java.util.Arrays;
-import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.PriorityQueue;
@@ -9,8 +7,6 @@ import java.util.PriorityQueue;
 import Logic.Field;
 import Logic.Point;
 import Logic.Portals;
-import Logic.Snake;
-import Logic.Field.CellType;
 
 public class PathFinder {
 	private int[][] distanceMap;
@@ -31,17 +27,19 @@ public class PathFinder {
 	private Point portal1;
 	private Point portal2;
 	
-	private Point altPoint1=new Point(15,1);
-	private Point altPoint2=new Point(15,18);
-	
 	//Heuristik values
 	public static final int SPACE = 1;
 	public static final int WALL = 100;
+	public boolean ignorePortals = false;
 	
-	public Node getMinPath(Snake snake, Point target,Field field, Portals portals) 
+	public Node getMinPath(TempSnake snake, Point target,Field field, Portals portals) 
+	{
+		return getMinPathWithTail(snake,target,field,portals,snake.segments().get(0));
+	}
+	public Node getMinPathWithTail(TempSnake snake, Point target,Field field, Portals portals, Point tail)
 	{
 		Point startPoint = snake.headPosition();
-		Point snakeTail  = snake.segments().get(0);
+		Point snakeTail  = tail;
 		portal1 = portals.getPortal1();
 		portal2 = portals.getPortal2();
 		openList.clear();
@@ -53,60 +51,21 @@ public class PathFinder {
 			blockingMap[snakeTail.x][snakeTail.y]=1;
 		// Calculate A*
 		openList.add(start);
-//		if(target.equals(altPoint1) || target.equals(altPoint2))
-//			System.out.println("openList-Start: " + Arrays.toString(openList.toArray()));
+		
 		//Wenn das Ziel in der ClosedList ist oder die OpenList leer ist, sind wir fertig!
 		while (!isInList(false,target) && !openList.isEmpty()) {
 			Node min = openList.remove();
 			closedList.add(min);
 			Point current = min.getActual();
-//			if(target.equals(altPoint1) || target.equals(altPoint2))
-//			{
-//				System.out.println("openList: " + Arrays.toString(openList.toArray()));
-//				System.out.println("closedList: " + Arrays.toString(closedList.toArray()));
-//				System.out.println("current: " + current);
-//			}
-			if(field.cell(current).equals(CellType.PORTAL) && portals.isActive())
+			if(!ignorePortals)
 			{
-				if(current.equals(portal1))
+				if(current.equals(portal1) && portals.getTTL() >=  min.lengthToDest(startPoint))
 				{
-					for (int i = -1; i <= 1; i += 2)
-					{
-						if (portal2.x + i < 29 && portal2.x + i >= 1)
-						{
-							Point next = new Point(portal2.x + i, portal2.y);
-							if(blockingMap[portal2.x+i][portal2.y] == 1)
-								if(next.equals(portal2) && portals.getTTL() >=  min.lengthToDest(startPoint))
-									updateMin(next, min);
-						}
-						if (portal2.y + i < 19 && portal2.y + i >= 1)
-						{
-							Point next = new Point(portal2.x, portal2.y + i);
-							if(blockingMap[portal2.x][portal2.y+i] == 1)
-								if(next.equals(portal2) && portals.getTTL() >=  min.lengthToDest(startPoint))
-									updateMin(next, min);
-						}
-					}
+					updateMin(portal2, min);
 				}
-				else
+				if(current.equals(portal2) && portals.getTTL() >=  min.lengthToDest(startPoint))
 				{
-					for (int i = -1; i <= 1; i += 2)
-					{
-						if (portal1.x + i < 29 && portal1.x + i >= 1)
-						{
-							Point next = new Point(portal1.x + i, portal1.y);
-							if(blockingMap[portal1.x+i][portal1.y] == 1)
-								if(next.equals(portal1) && portals.getTTL() >=  min.lengthToDest(startPoint))
-									updateMin(next, min);
-						}
-						if (portal1.y + i < 19 && portal1.y + i >= 1)
-						{
-							Point next = new Point(portal1.x, portal1.y + i);
-							if(blockingMap[portal1.x][portal1.y+i] == 1)
-								if(next.equals(portal1) && portals.getTTL() >=  min.lengthToDest(startPoint))
-									updateMin(next, min);
-						}
-					}
+					updateMin(portal1, min);
 				}
 			}
 			for (int i = -1; i <= 1; i += 2)
@@ -116,13 +75,6 @@ public class PathFinder {
 					Point next = new Point(current.x + i, current.y);
 					if(blockingMap[current.x+i][current.y] == 1)
 						updateMin(next, min);
-					if(field.cell(next).equals(CellType.PORTAL))
-					{
-						if(next.equals(portal1) && portals.getTTL() >=  min.lengthToDest(startPoint))
-							updateMin(portal1, min);
-						if(next.equals(portal2) && portals.getTTL() >=  min.lengthToDest(startPoint))
-							updateMin(portal2, min);						
-					}
 				}
 				if (current.y + i < 19 && current.y + i >= 1)
 				{
@@ -132,11 +84,6 @@ public class PathFinder {
 				}
 			}
 		}
-//		if(target.equals(altPoint1) || target.equals(altPoint2))
-//		{
-//			System.out.println("openList: " + Arrays.toString(openList.toArray()));
-//			System.out.println("closedList: " + Arrays.toString(closedList.toArray()));
-//		}
 
 		closedList.remove(0);
 		return UtilFunctions.getMovePair(target,closedList);
@@ -198,6 +145,7 @@ public class PathFinder {
 				case SPACE:
 				case CHANGESNAKE:
 				case CHANGEHEADTAIL:
+				case SPEEDUP:
 				case FEATUREWALL: blockingMap[i][j] = SPACE; break;
 				case SNAKE:
 				case WALL: blockingMap[i][j] = WALL; break;

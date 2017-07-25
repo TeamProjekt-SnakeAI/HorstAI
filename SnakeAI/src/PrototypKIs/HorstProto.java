@@ -1,10 +1,8 @@
 package PrototypKIs;
 
 import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-
 import java.util.Random;
+import java.util.Stack;
 
 import Logic.Field;
 import Logic.Field.CellType;
@@ -12,339 +10,323 @@ import Logic.GameInfo;
 import Logic.Point;
 import Logic.Snake;
 import Logic.Snake.Direction;
+import Logic.SnakeBrain;
 import Util.AlphaBeta;
 import Util.HamiltonPath;
 import Util.Node;
-import Util.Pathfinding;
+import Util.PathFinder;
 import Util.TempSnake;
 import Util.UtilFunctions;
-import Logic.SnakeBrain;
 
-//HorstAI
-//Created by: Julia Hofmann, Marco Piechotta
+public class HorstProto implements SnakeBrain{
 
-public class HorstProto implements SnakeBrain {
-	
-	//Wird vielleicht noch gebraucht um Features einheitlich abzugreifen (Jedes Feature implementiert ein Interface und wir k�nnen Objekte dieses Interfaces verwenden f�r die
-	// "eatable Objects"
-//	private PriorityQueue<ApplePos> apples = new PriorityQueue<>(new Comparator<ApplePos>(){
-//
-//		@Override
-//		public int compare(ApplePos o1, ApplePos o2) {
-//			if(o1.getDistance() > o2.getDistance())
-//				return 1;
-//			else if(o1.getDistance()< o2.getDistance())
-//				return -1;
-//			return 0;
-//		}
-//		
-//	});
-	private Node target;
 	private Snake mySnake;
 	private Snake enemySnake;
 	private Direction last = null;
-	private boolean playSave= false;
 	private Field tempField;
+	private boolean firstRound=true;
+	private boolean passedPortal = false;
 	
 	//Eatable Stuff
-	private Point apple;
-	private Point wallItem;
+	//0 = apple , 1 = wallItem , 2 = changeSnake , 3 = changeHeadTail , 4 = Portal
+	private Point[] eatable = new Point[5];
+	private Point[] altTargets;
+	private int currentAltTarget;
 	
 	//A* 
-	private Pathfinding finder;
+	private PathFinder finder;
 	
-	//HamiltonPath
+	//HamiltonPath (PreFix h = hat mit dem HamiltonPath zutun
 	private HamiltonPath hFinder;
 	private HashMap<Point, Direction> hPath;
 	private HashMap<Point, Integer> hPointToIndex;
+	private Stack<Direction> hDirectionPath = new Stack<>();
 	
 	//AlphaBeta
 	private AlphaBeta alphaBeta;
 	
-	//Konstruktor f�r genetischen Algorithmus um f�r evalSituation den besten Array zu ermitteln um Situationen zu bewerten
-//	public HorstAI(int[] evalStuff)
-//	{
-//		alphaBeta = new AlphaBeta(evalStuff);
-//	}
 	@Override
 	public Direction nextDirection(GameInfo gameInfo, Snake snake) {
-		
 		//Initialisiere alle n�tigen Variablen, falls diese noch nicht initialisiert wurden
 		init(gameInfo,snake);
-		
-		Direction move = null;
-		
-		//Berechne AlphaBeta-Pruning f�r die aktuelle Position
-		alphaBeta.alphaBeta(gameInfo.field(), mySnake, enemySnake,4);
-
-		//K�nnen wir direkt gewinnen? -> folge diesem "Gewinnpfad"
-		if(alphaBeta.directionScores.get(alphaBeta.bestMove) != null && alphaBeta.bestScore > 1000)
+		if(UtilFunctions.getDistance(snake.headPosition(), altTargets[currentAltTarget]) < 2)
+			currentAltTarget = ((++currentAltTarget)%4);
+		if(firstRound)
 		{
-			return alphaBeta.bestMove;
-		}	
-		
-		boolean castle = true;	//Castle = wir haben uns eingeschlossen!
-		playSave = true;		//PlaySave = wir haben zur Zeit kein Ziel
-		
-		//Zunaechst schaue ob der Apfel erreichbar ist
-		if(apple != null)
+			firstRound = false;
+			return Direction.RIGHT;
+		}
+		if(gameInfo.getPortals().isActive())
 		{
-			target = new Node(null,apple,0,0);
-			
-			//Bin ich naeher am Apfel -> gehe dort hin
-			if(UtilFunctions.getDistance(mySnake.headPosition(),apple) <= 
-					UtilFunctions.getDistance(enemySnake.headPosition(),apple))
-			{		
-				
-				int[][] shortWayMap = finder.calcShortWayMap(target.getActual(),gameInfo.field());
-				Point snakeHead = snake.headPosition();
-				Point snakeTail = snake.segments().get(0);
-				for (int i = -1; i <= 1; i += 2) {
-					if (snakeHead.x + i < 29 && snakeHead.x + i >= 1)
+			if(gameInfo.field().cell(snake.headPosition()).equals(CellType.PORTAL))
+				passedPortal = true;
+			if(gameInfo.field().cell(snake.segments().get(0)).equals(CellType.PORTAL))
+				passedPortal = false;
+		}
+		else
+			passedPortal = false;
+		//Können wir Wände setzen?
+		if(snake.getCanSetWall())
+		{
+			for (int i = -1; i <= 1; i += 2)
+			{
+				Point head = enemySnake.headPosition();
+				if (head.x + i < 29 && head.x + i >= 1)
+				{
+					Point next = new Point(head.x +i,head.y);
+					if(gameInfo.field().cell(next) == CellType.SPACE)
 					{
-						Point nextPos = new Point(snakeHead.x + i, snakeHead.y);
-						int headIndex = hPointToIndex.get(snakeHead);
-						int nextIndex = hPointToIndex.get(nextPos);
-						int tailIndex = hPointToIndex.get(snakeTail);
-						if(tailIndex < nextIndex && nextIndex < headIndex && tailIndex > headIndex)
-							shortWayMap[nextPos.x][nextPos.y]=100;
-						Direction dir = UtilFunctions.getDirection(snakeHead, nextPos);
-						if(alphaBeta.directionScores.containsKey(dir))
-							if(alphaBeta.directionScores.get(dir)  < 0)
-							{
-								shortWayMap[nextPos.x][nextPos.y]=100;
-							}
-					}
-					if (snakeHead.y + i < 19 && snakeHead.y + i >= 1)
-					{					
-						Point nextPos = new Point(snakeHead.x, snakeHead.y + i);
-						int headIndex = hPointToIndex.get(snakeHead);
-						int nextIndex = hPointToIndex.get(nextPos);
-						int tailIndex = hPointToIndex.get(snakeTail);
-						if(tailIndex < nextIndex && nextIndex < headIndex && tailIndex > headIndex)
-							shortWayMap[nextPos.x][nextPos.y]=100;
-						Direction dir = UtilFunctions.getDirection(snakeHead, nextPos);
-						if(alphaBeta.directionScores.containsKey(dir))
-							if(alphaBeta.directionScores.get(dir)  < 0)
-							{
-								shortWayMap[nextPos.x][nextPos.y]=100;
-							}
+						snake.setWall(next, Direction.RIGHT);
+						break;
 					}
 				}
-				//Berechne kuerzesten Weg zum Ziel
-				Node path = finder.getMinPath(snake.headPosition(), target.getActual(),gameInfo.field(),snake.segments().get(0));
+				if (head.y + i < 19 && head.y + i >= 1)		
+				{
+					Point next = new Point(head.x +i,head.y);
+					if(gameInfo.field().cell(next) == CellType.SPACE)
+					{
+						snake.setWall(next, Direction.RIGHT);
+						break;
+					}
+				}
+			}
+		}
+		//Gibt es das Schlangentausch Feature und unsere Schlange ist min. 9 lang?
+		if(eatable[2] != null && snake.segments().size() >= 9)
+		{
+			//Auf zum Sieg! Einrollen um den Schlangentausch
+			if(UtilFunctions.getDistance(eatable[2], snake.headPosition()) == 1)
+			{
+				//Okay einkreisen von hier!
+				Direction dir = UtilFunctions.getDirection(snake.headPosition(), eatable[2]);
+				switch(dir)
+				{
+				case UP:
+				case DOWN:
+					if(isMoveValid(Direction.LEFT, snake, gameInfo))
+						return Direction.LEFT;
+					if(isMoveValid(Direction.RIGHT, snake, gameInfo))
+						return Direction.RIGHT;
+					return dir;
+				case LEFT:
+				case RIGHT:
+					if(isMoveValid(Direction.UP, snake, gameInfo))
+						return Direction.UP;
+					if(isMoveValid(Direction.DOWN, snake, gameInfo))
+						return Direction.DOWN;
+					return dir;
+				}
+			}
+			if(UtilFunctions.getDistance(eatable[2], snake.headPosition()) == 2)
+			{
+				//Okay einkreisen von hier!
+				Direction dir = null;
+				for (int i = -1; i <= 1; i += 2)
+				{
+					Point toCheck = new Point(snake.headPosition().x+i,snake.headPosition().y);
+					if(UtilFunctions.getDistance(toCheck, eatable[2])==1)
+					{
+						dir = UtilFunctions.getDirection(snake.headPosition(), toCheck);
+						if(isMoveValid(dir, snake, gameInfo))
+							return dir;
+					}
+					toCheck = new Point(snake.headPosition().x,snake.headPosition().y+i);
+					if(UtilFunctions.getDistance(toCheck, eatable[2])==1)
+					{
+						dir = UtilFunctions.getDirection(snake.headPosition(), toCheck);
+						if(isMoveValid(dir, snake, gameInfo))
+							return dir;
+					}
+				}
 				
-				//Gibt es keinen Pfad dorthin?
-				if(path != null)
+				switch(dir)
+				{
+				case UP:
+				case DOWN:
+					if(isMoveValid(Direction.LEFT, snake, gameInfo))
+						return Direction.LEFT;
+					if(isMoveValid(Direction.RIGHT, snake, gameInfo))
+						return Direction.RIGHT;
+					return dir;
+				case LEFT:
+				case RIGHT:
+					if(isMoveValid(Direction.UP, snake, gameInfo))
+						return Direction.UP;
+					if(isMoveValid(Direction.DOWN, snake, gameInfo))
+						return Direction.DOWN;
+					return dir;
+				}
+			}
+			//Berechne kuerzesten Weg zum Ziel
+			Point targetPoint = null;
+			foundTarget:for(int i=-1;i<2;i+=2)
+			{
+				for(int j=-1;j<2;j+=2)
+				{
+					targetPoint = new Point(eatable[2].x+i,eatable[2].y+i);
+					if(gameInfo.field().cell(targetPoint).equals(CellType.SPACE))
+						break foundTarget;
+				}
+			}
+			if(targetPoint == null)
+				targetPoint = eatable[2];
+			Node path = finder.getMinPath(new TempSnake(snake), targetPoint,gameInfo.field(),gameInfo.getPortal());
+			//Gibt es keinen Pfad dorthin?
+			if(path != null)
+			{	
+				//Wir haben einen Pfad
+				while(path.getFrom() != null && !path.getFrom().getActual().equals(snake.headPosition()))
+					path = path.getFrom();	
+				hDirectionPath.clear();
+				return UtilFunctions.getDirection(path.getFrom().getActual(),path.getActual());				
+			}
+			
+		}
+		if(snake.segments().size() > 15 && !passedPortal && gameInfo.getPortals().isActive())
+		{
+			Point[] portals = {gameInfo.getPortals().getPortal1(),gameInfo.getPortals().getPortal2()};
+			for(int i=0;i<2;i++)
+			{
+				Node path = finder.getMinPath(new TempSnake(snake), portals[i],gameInfo.field(),gameInfo.getPortal());
+				int dist = (path!= null?path.lengthToDest(snake.headPosition()):0);
+				double TTL = gameInfo.getPortals().getTTL();
+				if(path != null &&  TTL <= dist+9 && TTL >= dist+1)
 				{	
 					//Wir haben einen Pfad
 					while(path.getFrom() != null && !path.getFrom().getActual().equals(snake.headPosition()))
 						path = path.getFrom();	
-					
-					move = UtilFunctions.getDirection(path.getFrom().getActual(),path.getActual());
-					
-					//Ist der gew�hlte Pfad schlecht?
-//					if(alphaBeta.directionScores.get(move) != null && alphaBeta.directionScores.get(move) <= -9000)
-//					{
-////					System.out.println("Death!!");
-//						playSave = true;
-//						move = null;
-//					}
-					
-					playSave = false;
-					castle = false;
-				}
-				else
-				{
-					boolean appleInside = false;
-//					for(Point p : snake.segments())
-//						if(p.equals(apple))
-//						{
-//							appleInside = true;
-//							break;
-//						}
-//					System.out.println("###continue because: No Path");
-					if(!appleInside)
-					{
-//						System.out.println("-> Castle");
-						castle = true;
-					}
-					else
-					{
-//						System.out.println("-> Play Save");
-						castle = false;
-						playSave = true;
-					}
-				}
+					hDirectionPath.clear();
+					return UtilFunctions.getDirection(path.getFrom().getActual(),path.getActual());				
+				}			
 			}
-			else
-			{
-//				//Gegner ist näher am Apfel
-//				if(!snake.getCanSetWall())
-//				{
-//					System.out.println("Cant Set Wall");
-//					target = new Node(null,wallItem,0,0);
-//					//Berechne kuerzesten Weg zum Ziel
-//					Node path = finder.getMinPath(snake.headPosition(), target.getActual(),gameInfo.field(),snake.segments().get(0));
-//					
-//					//Gibt es keinen Pfad dorthin, suche einen neues Ziel
-//					if(path != null)
-//					{
-//						//Wir haben einen Pfad
-//						while(path.getFrom() != null && !path.getFrom().getActual().equals(snake.headPosition()))
-//							path = path.getFrom();	
-//						
-//						move = UtilFunctions.getDirection(path.getFrom().getActual(),path.getActual());
-//						playSave = false;
-//						castle = false;
-//					}
-//				}
-				//Berechne kuerzesten Weg zum Ziel
-				Node path = finder.getMinPath(snake.headPosition(), target.getActual(),gameInfo.field(),snake.segments().get(0));
-				
-				//Gibt es keinen Pfad dorthin, suche einen neues Ziel
-				if(path != null)
-				{
-					playSave=true;
-					castle = false;
-				}
-				else
-				{
-					playSave=false;
-					castle = true;
-				}
-			}	
 		}
-//		else if(snake.getCanSetWall())
-//		{
-//			System.out.println("Can Set Wall");
-//			snake.setWall(new Point(15,10), Direction.LEFT);
-//		}
+		if(eatable[0] != null && UtilFunctions.getDistance(mySnake.headPosition(),eatable[0]) <= 
+				UtilFunctions.getDistance(enemySnake.headPosition(),eatable[0]))
+		{
+			//Wir sind n�her am Apfel!
+			//Berechne kuerzesten Weg zum Ziel
+			Node path = finder.getMinPath(new TempSnake(snake), eatable[0],gameInfo.field(),gameInfo.getPortal());
+			//Gibt es keinen Pfad dorthin?
+			if(path != null)
+			{	
+				//Wir haben einen Pfad
+				while(path.getFrom() != null && !path.getFrom().getActual().equals(snake.headPosition()))
+					path = path.getFrom();	
+				hDirectionPath.clear();
+				return UtilFunctions.getDirection(path.getFrom().getActual(),path.getActual());				
+			}
+		}
 		else
 		{
-		//Gibt es keine Aepfel mehr, dann spiele auf Zeit
-			playSave=true;
-			castle = false;
-		}	
-		if(castle)
-		{
-			Field tempField = Field.defaultField(gameInfo.field().width(), gameInfo.field().height());
-			for(Point snakePoint : mySnake.segments())
+			//Mist! Der Gegner ist n�her am Apfel. K�nnen wir die Schlangen tauschen? bevor er beim Apfel ist?
+			if(eatable[2] != null && eatable[0] != null)
 			{
-				if(!snakePoint.equals(mySnake.headPosition()) && !snakePoint.equals(mySnake.segments().get(0)))
-					tempField.setCell(CellType.WALL, snakePoint);
-			}
-			for(Point snakePoint : enemySnake.segments())
-			{
-				tempField.setCell(CellType.WALL, snakePoint);
-			}
-			Node path = hFinder.getMaxPath(snake.headPosition(), tempField, new TempSnake(snake), new TempSnake(enemySnake));
-			if(path != null)
-			{
-				while(path != null && path.getFrom() != null && !path.getFrom().getActual().equals(snake.headPosition()))
-					path = path.getFrom();
-				move = UtilFunctions.getDirection(path.getFrom().getActual(),path.getActual());
-			}
-		}
-		if(playSave)
-		{
-			Point snakeHead = snake.headPosition();
-			Point snakeTail = snake.segments().get(0);
-			List<Direction> dirs = new LinkedList<>();
-			for (int i = -1; i <= 1; i += 2) {
-				boolean addX = true;
-				boolean addY = true;
-				Point nextPosX = null;
-				Point nextPosY = null;
-				if (snakeHead.x + i < 29 && snakeHead.x + i >= 1)
+				if(UtilFunctions.getDistance(enemySnake.headPosition(),eatable[0]) > UtilFunctions.getDistance(mySnake.headPosition(),eatable[2]))
 				{
-					nextPosX = new Point(snakeHead.x + i, snakeHead.y);
-					if(isMoveValid(UtilFunctions.getDirection(snakeHead, nextPosX), snake, gameInfo))
-					{
-						int headIndex = hPointToIndex.get(snakeHead);
-						int nextIndex = hPointToIndex.get(nextPosX);
-						int tailIndex = hPointToIndex.get(snakeTail);
-//						System.out.println("noPath: "+tailIndex + "---" +nextIndex + "---"+headIndex);
-						if(tailIndex > nextIndex && nextIndex > headIndex)
-							addX = false;
-					}
-					else
-					{
-						addX = false;
+					//Jap! Dann lass uns da hin gehen
+					//Berechne kuerzesten Weg zum Ziel
+					Node path = finder.getMinPath(new TempSnake(snake), eatable[2],gameInfo.field(),gameInfo.getPortal());
+					//Gibt es keinen Pfad dorthin?
+					if(path != null)
+					{	
+						//Wir haben einen Pfad
+						while(path.getFrom() != null && !path.getFrom().getActual().equals(snake.headPosition()))
+							path = path.getFrom();	
+						hDirectionPath.clear();
+						return UtilFunctions.getDirection(path.getFrom().getActual(),path.getActual());				
 					}
 				}
-				else
-					addX = false;
-				if (snakeHead.y + i < 19 && snakeHead.y + i >= 1)
-				{		
-					nextPosY = new Point(snakeHead.x, snakeHead.y + i);
-					if(isMoveValid(UtilFunctions.getDirection(snakeHead, nextPosY), snake, gameInfo))
-					{
-						int headIndex = hPointToIndex.get(snakeHead);
-						int nextIndex = hPointToIndex.get(nextPosY);
-						int tailIndex = hPointToIndex.get(snakeTail);
-						if(tailIndex > nextIndex && nextIndex > headIndex)
-							addY = false;
-					}
-					else
-					{
-						addY = false;
-					}
-				}
-				else
-					addY = false;
-				
-				if(addX && nextPosX != null)
-					dirs.add(UtilFunctions.getDirection(snakeHead, nextPosX));
-				if(addY && nextPosY != null)
-					dirs.add(UtilFunctions.getDirection(snakeHead, nextPosY));
 			}
-			if(!dirs.isEmpty())
-				move = dirs.get(0);
-//			int best = Integer.MIN_VALUE;
-//			for(Entry<Direction,Integer> entry : alphaBeta.directionScores.entrySet())
-//			{
-//				System.out.println(entry.getKey() + " -> " + entry.getValue());
-//				if(entry.getValue() > best && isMoveValid(entry.getKey(), snake, gameInfo))
-//				{
-//					best = entry.getValue();
-//					move = entry.getKey();
-//				}
-//			}
-//			System.out.println("Best: " + move+"\n--------------------------");
-//			for(int i=0;i<snake.segments().size();i++)
-//			{
-//				hamiltonPath = hFinder.getMaxPath(snake.headPosition(), mySnake.segments().get(i),gameInfo.field(),snake);
-//				if(hamiltonPath != null)
-//					break;
-//			}			
-//			if(hamiltonPath != null)
-//			{
-//				System.out.println("SnakeHead: " + snake.headPosition());
-//				System.out.println(hamiltonPath.getActual());
-//				move = UtilFunctions.getDirection(snake.headPosition(),hamiltonPath.getActual());
-//				System.out.println("Move: " + move);
-//				hamiltonPath = hamiltonPath.getFrom();
-//				while(hamiltonPath.getFrom() != null && !hamiltonPath.getFrom().getActual().equals(snake.headPosition()))
-//					hamiltonPath = hamiltonPath.getFrom();				
-//			}
-//			stallPoint = mySnake.segments().get(0);
-//			//Laufe im Kreis!
-//			System.out.println("StallPoint: " + stallPoint);
-//			Node path = finder.getMaxPath(start, stallPoint);
-//			System.out.println(path);
-//			while(path.getFrom() != null && !path.getFrom().getActual().equals(start.getActual()))
-//			{
-//				System.out.println(path.getFrom().getActual()+ " -> "+path.getActual() + ": Costs" + path.getFCost());
-//				path = path.getFrom();
-//			}
-//			move = getDirection(snake.headPosition(),path.getActual());
 		}
-		if(move == null)
+		//Wenn wir bis jetzt noch keinen Weg gefunden haben, sollten wir auf Zeit spielen:
+		//K�nnen wir durch ein Portal unsere Schlange verk�rzen?
+		if(!passedPortal && gameInfo.getPortals().isActive() )
 		{
-			return randomMove(gameInfo, snake);
+			Point[] portals = {gameInfo.getPortals().getPortal1(),gameInfo.getPortals().getPortal2()};
+			for(int i=0;i<2;i++)
+			{
+				Node path = finder.getMinPath(new TempSnake(snake), portals[i],gameInfo.field(),gameInfo.getPortal());
+				int dist = (path!= null?path.lengthToDest(snake.headPosition()):0);
+				double TTL = gameInfo.getPortals().getTTL();
+				if(path != null && dist+9 >= TTL && dist+1 <= TTL)
+				{	
+					//Wir haben einen Pfad
+					while(path.getFrom() != null && !path.getFrom().getActual().equals(snake.headPosition()))
+						path = path.getFrom();	
+					hDirectionPath.clear();
+					return UtilFunctions.getDirection(path.getFrom().getActual(),path.getActual());				
+				}			
+			}
 		}
-		return move;
+		//Holen wir uns ein WallItem, falls wir noch keine setzen koennen
+		if(eatable[1] != null && !snake.getCanSetWall())
+		{
+			Node path = finder.getMinPath(new TempSnake(snake), eatable[1],gameInfo.field(),gameInfo.getPortal());
+			//Gibt es keinen Pfad dorthin?
+			if(path != null)
+			{	
+				//Wir haben einen Pfad
+				while(path.getFrom() != null && !path.getFrom().getActual().equals(snake.headPosition()))
+					path = path.getFrom();	
+				hDirectionPath.clear();
+				return UtilFunctions.getDirection(path.getFrom().getActual(),path.getActual());				
+			}
+		}
+		//K�nnen wir zu unserem AlternativZiel gehen?
+		for(int i=0;i<4;i++)
+		{
+			if(!gameInfo.field().cell(altTargets[currentAltTarget]).equals(CellType.SNAKE) && 
+					!gameInfo.field().cell(altTargets[currentAltTarget]).equals(CellType.WALL))
+			{
+				Node altWay = finder.getMinPath(new TempSnake(snake), altTargets[currentAltTarget],gameInfo.field(),gameInfo.getPortal());
+				
+				//Gibt es keinen Pfad dorthin?
+				if(altWay != null)
+				{	
+					int currentAltTarget2 = ((currentAltTarget+1)%4);
+					if(!gameInfo.field().cell(altTargets[currentAltTarget2]).equals(CellType.SNAKE) && 
+							!gameInfo.field().cell(altTargets[currentAltTarget2]).equals(CellType.WALL))
+					{
+						Node altWay2 = finder.getMinPath(new TempSnake(snake), altTargets[currentAltTarget2],gameInfo.field(),gameInfo.getPortal());
+						if(altWay2 != null)
+						{
+							//Wir haben einen Pfad
+							while(altWay.getFrom() != null && !altWay.getFrom().getActual().equals(snake.headPosition()))
+								altWay = altWay.getFrom();	
+							hDirectionPath.clear();
+							return UtilFunctions.getDirection(altWay.getFrom().getActual(),altWay.getActual());
+						}
+					}
+				}
+				else
+					break;
+			}
+			currentAltTarget = ((++currentAltTarget)%4);
+		}
+		
+		//Wahrscheinlich haben wir uns eingeschlossen! Berechne den k�rzesten Weg zum Schwanz
+		if(hDirectionPath.isEmpty())
+		{
+			hFinder = new HamiltonPath();
+			Node way = hFinder.getMaxPath(snake.headPosition(), gameInfo.field(), new TempSnake(snake), new TempSnake(enemySnake),gameInfo.getPortal());
+//			System.out.println("First Direction: " + way.getActual() + " -> " + UtilFunctions.getDirection(way.getFrom().getActual(),way.getActual()));
+			while(way != null && way.getFrom() != null && !way.getActual().equals(snake.headPosition()))
+			{
+				hDirectionPath.add(UtilFunctions.getDirection(way.getFrom().getActual(),way.getActual()));
+				way = way.getFrom();
+			}
+//			System.out.println(Arrays.toString(hDirectionPath.toArray()));
+//			System.out.println(way.getActual());
+//			System.out.println(hDirectionPath.peek());
+			if(!hDirectionPath.isEmpty())
+				return hDirectionPath.pop();
+		}
+		else 
+			return hDirectionPath.pop();
+		Direction move = hPath.get(snake.headPosition());
+		if(move!= null && isMoveValid(move, snake, gameInfo))
+			return move;
+		return randomMove(gameInfo, snake);
 	}
 	private void init(GameInfo info, Snake snake)
 	{
@@ -364,12 +346,26 @@ public class HorstProto implements SnakeBrain {
 		
 		//initialisieren
 		if(finder == null)
-			finder = new Pathfinding(info.field());
+		{
+			finder = new PathFinder();
+			finder.ignorePortals = true;
+		}
 		if(hFinder == null)
 			hFinder = new HamiltonPath();
 		if(alphaBeta == null)
 			alphaBeta = new AlphaBeta();
-				
+		if(altTargets == null)
+		{
+			altTargets = new Point[4];
+			altTargets[0] = new Point(info.field().width()/2,1);
+			altTargets[1] = new Point(info.field().width()/2,info.field().height()-2);
+			altTargets[2] = new Point(1,info.field().height()/2);
+			altTargets[3] = new Point(info.field().width()-2,info.field().height()/2);
+			currentAltTarget = 0;
+		}
+					
+		if(firstRound)
+			return;
 		//Initialize mySnake and EnemySnake
 		if(mySnake == null || enemySnake == null)
 		{
@@ -416,14 +412,21 @@ public class HorstProto implements SnakeBrain {
 		getItems(info.field(),snake.headPosition());
 	}
 	private void getItems(Field f, Point snakeHead) {
+		eatable = new Point[5];
 		for(int x=0;x<f.width();x++)
 			for(int y=0;y<f.height();y++)
 			{
 				Point p = new Point(x,y);
 				if(f.cell(p).equals(CellType.APPLE))
-					apple = p;
+					eatable[0] = p;
 				if(f.cell(p).equals(CellType.FEATUREWALL))
-					wallItem = p;
+					eatable[1] = p;
+				if(f.cell(p).equals(CellType.CHANGESNAKE))
+					eatable[2] = p;
+				if(f.cell(p).equals(CellType.CHANGEHEADTAIL))
+					eatable[3] = p;
+				if(f.cell(p).equals(CellType.PORTAL))
+					eatable[4] = p;
 			}
 
 	}
@@ -460,7 +463,8 @@ public class HorstProto implements SnakeBrain {
 			newHead.y = 0;
 		}
 		
-		return gameInfo.field().cell(newHead) == CellType.SPACE || gameInfo.field().cell(newHead) == CellType.APPLE;
+		return gameInfo.field().cell(newHead) == CellType.SPACE || gameInfo.field().cell(newHead) == CellType.APPLE || gameInfo.field().cell(newHead) == CellType.PORTAL 
+				|| gameInfo.field().cell(newHead) == CellType.CHANGESNAKE || gameInfo.field().cell(newHead) == CellType.CHANGEHEADTAIL || gameInfo.field().cell(newHead) == CellType.FEATUREWALL;
 	}
 	
 	public static boolean isValidMovePossible(Snake snake, GameInfo gameInfo) {
@@ -482,4 +486,3 @@ public class HorstProto implements SnakeBrain {
 		return d;
 	}
 }
-

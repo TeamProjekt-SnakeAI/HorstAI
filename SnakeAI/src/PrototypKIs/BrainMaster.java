@@ -1,11 +1,8 @@
 package PrototypKIs;
 
-import java.util.Arrays;
 import java.util.HashMap;
-import java.util.Queue;
 import java.util.Random;
 import java.util.Stack;
-import java.util.concurrent.LinkedBlockingQueue;
 
 import Logic.Field;
 import Logic.Field.CellType;
@@ -53,6 +50,7 @@ public class BrainMaster implements SnakeBrain{
 	private Point[] altTargets;
 	private int currentAltTarget;
 	private GameInfo info;
+	private Point wallPlacedTarget = null;
 	
 	//MinPathFinder Alg.: A*-Algorithm 
 	private PathFinder minPathFinder;
@@ -81,9 +79,13 @@ public class BrainMaster implements SnakeBrain{
 			firstRound = false;
 			return Direction.RIGHT;
 		}
+
+			
 		
+		//TODO umbenennen!
 		wallDetection();
 		//Ist der Schlangenkoerper gerade in einem Portal?
+		System.out.println("check Portals");
 		if(gameInfo.getPortals().isActive())
 		{
 			if(gameInfo.field().cell(snake.headPosition()).equals(CellType.PORTAL))
@@ -94,7 +96,9 @@ public class BrainMaster implements SnakeBrain{
 		else
 			passedPortal = false;
 		
-		placeWallIfPossible();
+		System.out.println("place Walls for a trap");
+		if(wallPlacedAtApple())
+			return moveDirection;
 		
 		System.out.println("PortalHelpful");
 		if(isPortalHelpfulForSnake())
@@ -124,17 +128,171 @@ public class BrainMaster implements SnakeBrain{
 		
 		return randomMove();
 	}
-	private void placeWallIfPossible()
+	private boolean placeWallIfPossible()
 	{
 		//TODO: Wall Feature hier einfuegen
+			//   8         4         2         1
+			//[wallUp][wallRight][wallDown][wallLeft]
 		if(mySnake.getCanSetWall())
 		{
 			int walls = wallDetection();
 			if(walls > 0 && !isSnakeCloserToTarget(eatable[Items.APPLE.getIndex()]))
 			{
-				
+				Point apple = eatable[Items.APPLE.getIndex()];
+				boolean upDown = false;
+				Point closePoint = apple;
+				boolean foundClosePoint = false;
+				switch(walls)
+				{
+				case 1:
+					//
+					//| x  
+					//			
+					for(int i=-3;i<=3;i++)
+					{
+						closePoint = new Point(apple.x,apple.y+i);
+						if(i >= 0)
+							upDown = true;
+						if(isSnakeCloserToTarget(closePoint,apple))
+						{
+							foundClosePoint = true;
+							break;
+						}
+					}
+					if(foundClosePoint)
+						mySnake.setWall(new Point(closePoint.x+1,(upDown?closePoint.y-2:closePoint.y+2)), Direction.DOWN);
+					break;
+				case 2:
+					//
+					// x
+					// _
+					for(int i=-3;i<=3;i++)
+					{
+						closePoint = new Point(apple.x+i,apple.y);
+						if(i >= 0)
+							upDown = true;
+						if(isSnakeCloserToTarget(closePoint,apple))
+						{
+							foundClosePoint = true;
+							break;
+						}
+					}
+					if(foundClosePoint)
+						mySnake.setWall(new Point((upDown?closePoint.x-2:closePoint.x+2),closePoint.y-1), Direction.LEFT);
+					break;
+				case 3:
+					//
+					//| x
+					//  _
+				case 4:
+					//
+					// x |
+					// 
+					for(int i=-3;i<=3;i++)
+					{
+						closePoint = new Point(apple.x,apple.y+i);
+						if(i >= 0)
+							upDown = true;
+						if(isSnakeCloserToTarget(closePoint,apple))
+						{
+							foundClosePoint = true;
+							break;
+						}
+					}
+					if(foundClosePoint)
+						mySnake.setWall(new Point(closePoint.x-1,(upDown?closePoint.y-2:closePoint.y+2)), Direction.UP);
+					break;
+				case 5:
+					//
+					//| x |
+					// 
+				case 6:
+					//
+					// x |
+					// _
+				case 7:
+					//
+					//| x |
+					//  _
+				case 8:
+					// _
+					// x
+					// 
+					for(int i=-3;i<=3;i++)
+					{
+						closePoint = new Point(apple.x+i,apple.y);
+						if(i >= 0)
+							upDown = true;
+						if(isSnakeCloserToTarget(closePoint,apple))
+						{
+							foundClosePoint = true;
+							break;
+						}
+					}
+					if(foundClosePoint)
+						mySnake.setWall(new Point((upDown?closePoint.x-2:closePoint.x+2),closePoint.y+1), Direction.LEFT);
+					break;
+				case 9:
+					//  _
+					//| x
+					// _
+				case 10:
+					// _
+					// x
+					// _
+				case 11:
+					//  _
+					//| x 
+					//  _
+				case 12:
+					//
+					// x |
+					// _
+				case 13:
+					//  _
+					//| x |
+					// 
+				case 14:
+					// _
+					// x |
+					// _
+				case 15:
+					//  _
+					//| x |
+					//  _
+				default:
+				}
+				if(foundClosePoint)
+				{
+					wallPlacedTarget = closePoint;
+					if(getNextDirection(closePoint))
+						return true;
+				}
 			}
+			//Place Wall at Random Point
+//			Random r = new Random();
+//			Point wall = null;
+//			do
+//			{
+//				wall = new Point(r.nextInt(info.field().width()),r.nextInt(info.field().height()));
+//				mySnake.setWall(wall, Direction.LEFT);
+//			}
+//			while(mySnake.getCanSetWall());
 		}
+		wallPlacedTarget = null;
+		return false;
+	}
+	private boolean wallPlacedAtApple()
+	{	
+		if(wallPlacedTarget != null)
+		{
+			if(getNextDirection(wallPlacedTarget))
+				return true;
+		}
+		else
+			return placeWallIfPossible();
+		wallPlacedTarget = null;
+		return false;
 	}
 	private boolean isPortalHelpfulForSnake()
 	{
@@ -143,7 +301,7 @@ public class BrainMaster implements SnakeBrain{
 			Point[] portals = {info.getPortals().getPortal1(),info.getPortals().getPortal2()};
 			for(int i=0;i<portals.length;i++)
 			{
-				Node path = minPathFinder.getMinPath(mySnake, portals[i],info.field(),info.getPortal());
+				Node path = minPathFinder.getMinPath(new TempSnake(mySnake), portals[i],info.field(),info.getPortal());
 				int dist = (path!= null?path.lengthToDest(mySnake.headPosition()):0);
 				double TTL = info.getPortals().getTTL();
 				if(path != null &&  TTL == dist+DESIRED_SNAKE_LENGTH)
@@ -200,7 +358,7 @@ public class BrainMaster implements SnakeBrain{
 			if(!info.field().cell(altTargets[currentAltTarget]).equals(CellType.SNAKE) && 
 					!info.field().cell(altTargets[currentAltTarget]).equals(CellType.WALL))
 			{
-				Node altWay = minPathFinder.getMinPath(mySnake, altTargets[currentAltTarget],info.field(),info.getPortal());
+				Node altWay = minPathFinder.getMinPath(new TempSnake(mySnake), altTargets[currentAltTarget],info.field(),info.getPortal());
 				
 				//Gibt es keinen Pfad dorthin?
 				if(altWay != null)
@@ -209,7 +367,7 @@ public class BrainMaster implements SnakeBrain{
 					if(!info.field().cell(altTargets[currentAltTarget2]).equals(CellType.SNAKE) && 
 							!info.field().cell(altTargets[currentAltTarget2]).equals(CellType.WALL))
 					{
-						Node altWay2 = minPathFinder.getMinPath(mySnake, altTargets[currentAltTarget2],info.field(),info.getPortal());
+						Node altWay2 = minPathFinder.getMinPath(new TempSnake(mySnake), altTargets[currentAltTarget2],info.field(),info.getPortal());
 						if(altWay2 != null)
 						{
 							//Wir haben einen Pfad
@@ -217,6 +375,14 @@ public class BrainMaster implements SnakeBrain{
 								altWay = altWay.getFrom();	
 							maxPath.clear();
 							moveDirection = UtilFunctions.getDirection(altWay.getFrom().getActual(),altWay.getActual());
+							if(moveDirection == null)
+							{
+								int x = altWay.getFrom().getActual().x - altWay.getActual().x; 
+								moveDirection = (x > 0?Direction.LEFT:(x == 0?null:Direction.RIGHT));
+								int y = altWay.getFrom().getActual().y - altWay.getActual().y;
+								if(moveDirection == null)
+									moveDirection = (y > 0?Direction.UP:Direction.DOWN);
+							}
 							return true;
 						}
 					}
@@ -236,7 +402,7 @@ public class BrainMaster implements SnakeBrain{
 		if(maxPath.isEmpty())
 		{
 			maxPathFinder = new HamiltonPath();
-			Node way = maxPathFinder.getMaxPath(mySnake.headPosition(), info.field(), new TempSnake(mySnake), new TempSnake(enemySnake));
+			Node way = maxPathFinder.getMaxPath(new TempSnake(mySnake).headPosition(), info.field(), new TempSnake(mySnake), new TempSnake(enemySnake),info.getPortal());
 			while(way != null && way.getFrom() != null && !way.getActual().equals(mySnake.headPosition()))
 			{
 				maxPath.add(UtilFunctions.getDirection(way.getFrom().getActual(),way.getActual()));
@@ -271,6 +437,8 @@ public class BrainMaster implements SnakeBrain{
 	private int wallDetection()
 	{
 		Point apple = eatable[Items.APPLE.value];
+		if(apple== null)
+			return 0;
 		//   8         4         2         1
 		//[wallUp][wallRight][wallDown][wallLeft]
 		//Bsp.: 1101 => Wall oben,rechts und links
@@ -282,7 +450,7 @@ public class BrainMaster implements SnakeBrain{
 				Point next = new Point(apple.x +i,apple.y);
 				if(info.field().cell(next) == CellType.WALL)
 				{
-					wall |= (i > 0?1:4);
+					wall |= (i > 0?4:1);
 				}
 			}
 			if (apple.y + i <= 19 && apple.y + i >= 0)		
@@ -392,7 +560,7 @@ public class BrainMaster implements SnakeBrain{
 	}
 	private boolean getNextDirection(Point target)
 	{
-		Node path = minPathFinder.getMinPath(mySnake, target,info.field(),info.getPortal());
+		Node path = minPathFinder.getMinPath(new TempSnake(mySnake), target,info.field(),info.getPortal());
 		//Gibt es keinen Pfad dorthin?
 		if(path != null)
 		{	
@@ -401,6 +569,14 @@ public class BrainMaster implements SnakeBrain{
 				path = path.getFrom();	
 			maxPath.clear();
 			moveDirection = UtilFunctions.getDirection(path.getFrom().getActual(),path.getActual());
+			if(moveDirection == null)
+			{
+				int x = path.getFrom().getActual().x - path.getActual().x; 
+				moveDirection = (x > 0?Direction.LEFT:(x == 0?null:Direction.RIGHT));
+				int y = path.getFrom().getActual().y - path.getActual().y;
+				if(moveDirection == null)
+					moveDirection = (y > 0?Direction.UP:Direction.DOWN);
+			}
 			return true;
 		}
 		return false;
