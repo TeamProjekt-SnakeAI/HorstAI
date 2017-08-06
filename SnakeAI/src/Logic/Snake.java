@@ -9,6 +9,7 @@ import java.lang.management.ThreadMXBean;
 import java.util.Collections;
 import java.util.LinkedList;
 
+import Logic.Field.CellType;
 import javafx.scene.paint.Color;
 
 
@@ -86,8 +87,6 @@ public class Snake {
 		
 		//calculate new head position
 		Point newHead = new Point(head.x, head.y);
-		if(direction == null)
-			System.out.println(brain.getClass());
 		switch(direction) {
 		case DOWN:
 			newHead.y++;
@@ -121,7 +120,13 @@ public class Snake {
 		
 		if (grow == 0) { //don't grow, delete tail
 			Point rp = segments.removeFirst();
-			gameInfo.field().setCell(Field.CellType.SPACE, rp);
+			//If Tail is on edge, replace it with WALL and not SPACE
+			if(rp.x==0||rp.x==29||rp.y==0||rp.y==19){
+				gameInfo.field().setCell(Field.CellType.WALL, rp); 		
+			}
+			else{
+			  gameInfo.field().setCell(Field.CellType.SPACE, rp);
+			}
 		} else { //tail isn't deleted, snake grew one field
 			grow--;
 		}
@@ -191,7 +196,7 @@ public class Snake {
 	
 	public double getScore() {
 		// TODO Auto-generated method stub
-		return 0;
+		return score;
 	}
 	
 	public void setHead(Point portal) {
@@ -206,15 +211,19 @@ public class Snake {
 		this.segments = segments;
 	}
 
-	@Override
-	public String toString() {
-		return "Snake [score=" + score + ", brain=" + brain.getClass() + ", alive=" + alive + "]";
+	public void cutTail() {
+		int snakeSize = this.segments.size();
+		if (snakeSize > 1){
+			int cutSize = 3 + snakeSize / 4;
+			if (cutSize > snakeSize - 1)
+				cutSize = snakeSize - 1;
+			Point positionToDelete;
+			for(int i = 0; i < cutSize; i++){
+				positionToDelete = this.segments.removeFirst();
+				gameInfo.field().setCell(CellType.SPACE, positionToDelete);
+			}
+		}
+		
+		
 	}
-
-	public SnakeBrain getBrain() {
-		return brain;
-	}
-
-
-	
 }

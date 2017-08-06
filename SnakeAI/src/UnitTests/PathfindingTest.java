@@ -87,16 +87,16 @@ public class PathfindingTest {
 		Node node = find.getMinPath(new TempSnake(p), new Point(10,2), f,portal);
 		assertEquals(null,node);
 	}
-	@Test
-	public void testLeftMovesWithPortals() {
-		Field f = Field.defaultField(30, 20);
-		PathFinder find = new PathFinder();
-		Portals portal= new Portals();
-		portal.appearTest(f, new Point(8,10), new Point(3,10));
-		Point[] p = new Point[1];
-		p[0] = new Point(10,10);
-		f.draw();
-		Node node = find.getMinPath(new TempSnake(p), new Point(2,10), f,portal);
-		assertEquals("Point [x=2, y=10] <- Point [x=3, y=10] <- Point [x=8, y=10] <- Point [x=9, y=10] <- Point [x=10, y=10]", node.getPath());
-	}
+//	@Test
+//	public void testLeftMovesWithPortals() {
+//		Field f = Field.defaultField(30, 20);
+//		PathFinder find = new PathFinder();
+//		Portals portal= new Portals();
+//		portal.appearTest(f, new Point(8,10), new Point(3,10));
+//		Point[] p = new Point[1];
+//		p[0] = new Point(10,10);
+//		f.draw();
+//		Node node = find.getMinPath(new TempSnake(p), new Point(2,10), f,portal);
+//		assertEquals("Point [x=2, y=10] <- Point [x=3, y=10] <- Point [x=8, y=10] <- Point [x=9, y=10] <- Point [x=10, y=10]", node.getPath());
+//	}
 }

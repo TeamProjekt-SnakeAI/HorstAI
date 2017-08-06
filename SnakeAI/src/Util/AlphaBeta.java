@@ -1,5 +1,6 @@
 package Util;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -13,10 +14,28 @@ public class AlphaBeta {
 	private int MAXDEPTH;				//Maximale Tiefe, die vorraus geschaut wird
 	private TempSnake mySnake;			//Referenz zur eigenen Schlange
 	private TempSnake enemySnake;		//Referenz zur gegnerischen Schlange
+	private Point startingPoint;
+	private Point saveApple;
+	private int[][] evalField;
 	
 	//{ WIN LOOSE }
-	private int[] evalSituation = {100000,-100000};
-	
+	private int[] evalSituation = {100000,-100000 };
+	//{ DISTANCEAPPLE DISTANCEWALL DISTANCECHANGESNAKE DISTANCECHANGEHEATTAIL DISTANCEPORTAL DISTANCESPEEDUP DISTANCECUTTAIL }
+	private int[] evalDistances = {100, 20,10, 10,5, 30, 40};
+	//Eatable Stuff
+	//0 = apple , 1 = wallItem , 2 = changeSnake , 3 = changeHeadTail , 4 = Portal
+		private enum Items {
+			APPLE(0), WALLITEM(1), CHANGESNAKE(2), CHANGEHEADTAIL(3), PORTAL(4), SPEEDUP(5), CUTTAIL(6);
+			private final int value;		
+			private Items(int value) {
+				this.value = value;
+			}
+			public int getIndex()
+			{
+				return value;
+			}
+		}
+		private Point[] eatable = new Point[7];
 	public HashMap<Direction,Integer> directionScores = new HashMap<>();	//HashMap, durch die man sich für jede Direction den berechneten Score holen kann
 	public int bestScore;													//Bester Score, der berechnet wurde
 	public Direction bestMove;												//Bester Move der berechnet wurde
@@ -41,12 +60,15 @@ public class AlphaBeta {
 	 * @param enemySnake	gegnerische Schlange(MIN-Spieler)
 	 * @param searchDepth	maxTiefe
 	 */
-	public void alphaBeta(Field field, Snake mySnake, Snake enemySnake, int searchDepth)
+	public void alphaBeta(Field field, Snake mySnake, Snake enemySnake, int searchDepth,Point[] eatable)
 	{
 		//Init AlphaBeta Klassenvariablen
 		this.MAXDEPTH = searchDepth;
 		this.mySnake = new TempSnake(mySnake,"MYSNAKE");
 		this.enemySnake = new TempSnake(enemySnake, "ENEMYSNAKE");
+		this.eatable = eatable;
+		startingPoint = new Point(mySnake.headPosition().x,mySnake.headPosition().y);
+		evalField = new int[field.width()][field.height()];
 		
 		//Init GameField
 		Type[][] gameField = new Type[field.width()][field.height()];
@@ -57,6 +79,18 @@ public class AlphaBeta {
 		
 		//AlphaBeta berechnen. Nächster Spieler ist MAX-Spieler
 		bestScore = max(MAXDEPTH,Integer.MIN_VALUE,Integer.MAX_VALUE,this.mySnake,this.enemySnake,gameField);
+//		if(eatable[0]!= null)
+//		{
+//			System.out.println("ApplePos: " + eatable[0]);
+//			System.out.println("StartPos: " + startingPoint);
+//		}
+//		for(int i=0;i<evalField.length;i++)
+//		{
+//			System.out.println(Arrays.toString(evalField[i]));
+//		}
+//		if(eatable[0]== null)
+//			while(true)
+//				bestScore = 0;
 	}
 	
 	/**
@@ -71,23 +105,39 @@ public class AlphaBeta {
 	 */
 	private int max(int depth, int alpha, int beta, TempSnake mySnake, TempSnake enemySnake,Type[][] gameField)
 	{
-		List<Direction> possibleMoves = getPossibleMoves(mySnake.headPosition(),gameField, mySnake);
-		if(depth==0 || possibleMoves.isEmpty() || gameEnd(gameField))
-			return eval(gameField,mySnake.headPosition(),enemySnake.headPosition());
+		List<Direction> possibleMoves = getPossibleMoves(mySnake.headPosition(),gameField, mySnake);		
+		
+		//Check if we reached our desired search depth or if there is no possible move left or if the game is over (snake hit something)
+		if(depth==0 || possibleMoves.isEmpty() || gameEnd(gameField,depth) || (eatable[0] != null?mySnake.headPosition().equals(eatable[0]):false))
+			return eval(gameField,mySnake.headPosition(),enemySnake.headPosition(),depth);
+		
 		int maxValue = alpha;
+			
 		for(Direction dir : possibleMoves)
 		{
 			TempSnake saveSnake = new TempSnake(mySnake);
+			if(gameField[saveSnake.headPosition().x][saveSnake.headPosition().y] == Type.APPLE)
+			{
+				if(eatable[0] != null)
+					saveApple = eatable[0];
+				eatable[0] = null;
+			}
 			Type undo = makeMove(dir,gameField,saveSnake,true);
+//			makeMove(dir,gameField,saveSnake,true);
 			int value = min(depth-1,maxValue,beta,saveSnake,enemySnake,gameField);
 			undoMove(gameField,mySnake,saveSnake.headPosition(),true,undo);
+			if(saveApple != null)
+				eatable[0] = saveApple;
 			if(depth == MAXDEPTH)
 			{
+				System.out.println(dir + " : " + value);
+				evalField[saveSnake.headPosition().x][saveSnake.headPosition().y] = value;
 				directionScores.put(dir, value);
 			}
 			if(value > maxValue)
 			{
 				maxValue = value;
+				evalField[saveSnake.headPosition().x][saveSnake.headPosition().y] = value;
 				if(depth == MAXDEPTH)
 				{
 					bestMove = dir;
@@ -111,15 +161,24 @@ public class AlphaBeta {
 	private int min(int depth, int alpha, int beta, TempSnake mySnake, TempSnake enemySnake,Type[][] gameField)
 	{
 		List<Direction> possibleMoves = getPossibleMoves(enemySnake.headPosition(),gameField, enemySnake);
-		if(depth==0 || possibleMoves.isEmpty() || gameEnd(gameField))
-			return eval(gameField,mySnake.headPosition(),enemySnake.headPosition());
+		if(depth==0 || possibleMoves.isEmpty() || gameEnd(gameField,depth))
+			return eval(gameField,mySnake.headPosition(),enemySnake.headPosition(),depth);
 		int minValue = beta;
 		for(Direction dir : possibleMoves)
 		{
 			TempSnake saveSnake = new TempSnake(enemySnake);
+			if(gameField[saveSnake.headPosition().x][saveSnake.headPosition().y] == Type.APPLE)
+			{
+				if(eatable[0] != null)
+					saveApple = eatable[0];
+				eatable[0] = null;
+			}
 			Type undo = makeMove(dir,gameField,saveSnake,false);
+//			makeMove(dir,gameField,saveSnake,false);
 			int value = max(depth-1,alpha,minValue,mySnake,saveSnake,gameField);
 			undoMove(gameField,enemySnake,saveSnake.headPosition(),false,undo);
+			if(saveApple != null)
+				eatable[0] = saveApple;
 			if(value < minValue)
 			{
 				minValue = value;
@@ -138,9 +197,12 @@ public class AlphaBeta {
 	 * @return	gibt den Feldtyp zurück, auf dem nun die Schlange ist. (Um den Zug später rückgängig machen zu können)
 	 */
 	private Type makeMove(Direction dir, Type[][] gameField, TempSnake snake, boolean mySnake) {
+		
+		Point oldTail = snake.segments().get(0);
 		snake.move(dir);
 		Point newHead = snake.headPosition();
 		Type returnType = gameField[newHead.x][newHead.y];
+		gameField[oldTail.x][oldTail.y] = Type.SPACE;
 		if(gameField[newHead.x][newHead.y] == Type.APPLE)
 			snake.grow(1);
 		if(mySnake)
@@ -217,11 +279,31 @@ public class AlphaBeta {
 	 * @param enemyHead Kopf der gegnerischen Schlange
 	 * @return Bewertung des Spielfelds 
 	 */
-	private int eval(Type[][] gameField, Point myHead, Point enemyHead)
+	private int eval(Type[][] gameField, Point myHead, Point enemyHead, int depth)
 	{
+//		System.out.println("myHead: " + myHead);
+//		System.out.println("enemyHead: " + enemyHead);
 		int value= 0;
+		//POINTS:
+		value += mySnake.segments().size();
+		value += (mySnake.getScore() - enemySnake.getScore());
 		
-		//WIN
+//		value += depth * 100;
+		//DISTANCE
+//		for(int i=0;i<eatable.length;i++)
+//		{
+//			if(eatable[i] != null)
+//				value += 1000000 - UtilFunctions.getDistance(myHead, eatable[i])*evalDistances[i];			
+//		}
+		if(eatable[0] == null)
+			System.out.println("no eatable");
+		if(eatable[0] != null && myHead.equals(eatable[0]))
+			value += 100;
+		if(eatable[0] != null)
+			value += 200 - 2*UtilFunctions.getDistance(myHead, eatable[0]) - UtilFunctions.getDistance(startingPoint, eatable[0]) ;
+		value += 200 - 2*UtilFunctions.getDistance(startingPoint, enemyHead) - UtilFunctions.getDistance(myHead, enemyHead);
+		
+//		//WIN
 		switch(gameField[enemyHead.x][enemyHead.y])
 		{
 		case ENEMYSNAKEINSNAKE: value+= 1*evalSituation[0];break;
@@ -256,7 +338,6 @@ public class AlphaBeta {
 			value+= 1*evalSituation[1];
 		if(pointInSnake(mySnake,mySnake.headPosition()))
 			value+= 1*evalSituation[1];
-
 		return value;
 	}
 	/**
@@ -264,7 +345,7 @@ public class AlphaBeta {
 	 * @param gameField aktuelles Spielfeld
 	 * @return
 	 */
-	private boolean gameEnd(Type[][] gameField)
+	private boolean gameEnd(Type[][] gameField, int depth)
 	{
 		for(int x=0;x<gameField.length;x++)
 			for(int y=0;y<gameField[x].length;y++)
@@ -274,6 +355,7 @@ public class AlphaBeta {
 				case MYSNAKEINWALL:
 				case ENEMYSNAKEINSNAKE: 
 				case ENEMYINWALL:
+//					System.out.println("TRUE!" + depth);
 					return true;
 				default:
 				}
@@ -302,6 +384,29 @@ public class AlphaBeta {
 				case APPLE: gameField[x][y] = Type.APPLE; break;
 				case SPACE: gameField[x][y] = Type.SPACE; break;
 				case FEATUREWALL: gameField[x][y] = Type.WALLFEATURE; break;
+				case CHANGEHEADTAIL:
+					gameField[x][y] = Type.CHANGEHEADTAIL;
+					break;
+				case CHANGESNAKE:
+					gameField[x][y] = Type.CHANGESNAKE;
+					break;
+				case CUTTAIL:
+					gameField[x][y] = Type.CUTTAIL;
+					break;
+				case OPENFIELD:
+					gameField[x][y] = Type.OPENFIELD;
+					break;
+				case OPENFIELDPICTURE:
+					gameField[x][y] = Type.OPENFIELDPICTURE;
+					break;
+				case PORTAL:
+					gameField[x][y] = Type.PORTAL;
+					break;
+				case SPEEDUP:
+					gameField[x][y] = Type.SPEEDUP;
+					break;
+				default:
+					break;
 				}
 			}
 	}

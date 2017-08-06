@@ -18,6 +18,7 @@ public class TempSnake
 	private Point lastPosition;
 	private boolean alive;
 	private String name;
+	private double score;
 	
 	public TempSnake(Point[] points)
 	{
@@ -29,6 +30,7 @@ public class TempSnake
 		}
 		this.name = "Test Snake";
 		this.alive = true;
+		this.score = 0;
 	}
 	
 	public TempSnake(Snake snake, String name) {
@@ -41,6 +43,7 @@ public class TempSnake
 		}
 		this.name = name;
 		this.alive = true;
+		this.score = snake.getScore();
 	}
 	public TempSnake(TempSnake snake) {
 		this.segments = new LinkedList<Point>();
@@ -52,6 +55,7 @@ public class TempSnake
 		}
 		this.name = snake.name;
 		this.alive = true;
+		this.score = snake.getScore();
 	}
 	
 	public TempSnake(Snake snake) {
@@ -63,9 +67,11 @@ public class TempSnake
 			segments.add(temp);
 		}
 		this.alive = true;
+		this.score = snake.getScore();
 	}
 	public void grow(int n) {
 		grow += n;
+		changeScore(n*10);
 	}
 	
 	public void move(Direction dir) {
@@ -172,4 +178,13 @@ public class TempSnake
 	public String getName() {
 		return name;
 	}
+
+	public double getScore() {
+		return score;
+	}
+
+	public void changeScore(double delta) {
+		this.score += delta;
+	}
+	
 }

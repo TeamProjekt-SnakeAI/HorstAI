@@ -4,15 +4,19 @@
  * */
 
 package Logic;
+import Logic.Portals;
+
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
 
-import Brains.HorstAI;
-import PrototypKIs.BrainMaster;
 import javafx.scene.paint.Color;
+//import Brains.AwesomeBrain;
+//import Brains.HorstAI;
+//import Brains.NCageBrain;
+//import Brains.NotSoRandomBrain1;
+import Brains.RandomBrain;
 //import Brains.SuperBrain;
 
 
@@ -25,12 +29,17 @@ public class Game {
 	private int gameticks;
 //	private double appleProbability; //probability per move that an apple spawns 
 //	private double featureWallProbability; //probability per move that this feature spawns
-	//0 = apple, 1 = featureWall, 2 = changeSnake, 3 = changeHeadTail, 4 = speedUp
+	//0 = apple, 1 = featureWall, 2 = changeSnake, 3 = changeHeadTail, 4 = speedUp 5=cutSnake 6=OpenField
 	private double[] probabilitys; //probability per move that this feature spawns
 	private int playersLeft; //is decreased every time a player dies
 	private int currentSnake;
 	private Portals portal;
 	private boolean snakeDone2ndMove;
+	private int OpenFieldTTL;
+	
+	public int getOpenFieldTTL(){
+		return OpenFieldTTL;
+	}
 	
 	public ArrayList<Snake> getSnakes() {
 		return snakes;
@@ -62,6 +71,7 @@ public class Game {
 		snakes = new ArrayList<Snake>();
 		playersLeft = brains.size();
 		snakeDone2ndMove = true; // = true causes that snake only do double moves in the turn after eaten speedUp feature
+		OpenFieldTTL=ThreadLocalRandom.current().nextInt(30, 120 + 1);  //Random Value, how long the Field stays open
 		
 		//adding the snakes
 		for (int i = 0;i < brains.size();i++) {
@@ -84,39 +94,22 @@ public class Game {
 	}
 
 	public static void main(String[] args) {
-		HashMap<String,Integer> winMap = new HashMap<>();
-		for(int i=0;i<100;i++)
-		{
-			Field field = Field.defaultField(30, 20);
-			Point start1 = new Point(2, 2);
-			Point start2 = new Point(27, 17);
-			ArrayList<Point> startPositions = new ArrayList<Point>();
-			startPositions.add(start1);
-			startPositions.add(start2);
-			ArrayList<SnakeBrain> brains = new ArrayList<SnakeBrain>();
-			brains.add(new HorstAI());
-			brains.add(new BrainMaster());
-			ArrayList<Color> colors = new ArrayList<Color>();
-			colors.add(Color.YELLOWGREEN);
-			colors.add(Color.AZURE);
-			double[] probabilitys = {1, 0.005, 0.003, 0.003, 0.003, 0.004};
-			Game game = new Game(brains, startPositions, colors, field, probabilitys);
-			if(winMap.isEmpty())
-			{
-				for(Snake s : game.snakes)
-					winMap.put(s.getBrain().getClass().toString(),0);
-			}
-			game.run();
-			for(Snake s : game.snakes)
-			{
-				if(s.alive())
-				{
-					winMap.put(s.getBrain().getClass().toString(), winMap.get(s.getBrain().getClass().toString())+1);
-					System.out.println(Arrays.toString(winMap.entrySet().toArray()));
-				}
-			}
-		}
-		System.out.println(Arrays.toString(winMap.entrySet().toArray()));
+		Field field = Field.defaultField(30, 20);
+		
+		Point start1 = new Point(2, 2);
+		Point start2 = new Point(27, 17);
+		ArrayList<Point> startPositions = new ArrayList<Point>();
+		startPositions.add(start1);
+		startPositions.add(start2);
+		ArrayList<SnakeBrain> brains = new ArrayList<SnakeBrain>();
+		brains.add(new RandomBrain());
+		brains.add(new RandomBrain());
+		ArrayList<Color> colors = new ArrayList<Color>();
+		colors.add(Color.YELLOWGREEN);
+		colors.add(Color.AZURE);
+		double[] probabilitys = {0.1, 0.005, 0.003, 0.003, 0.003, 0.003, 0.003};
+		Game game = new Game(brains, startPositions, colors, field, probabilitys);
+		game.run();
 	}
 	
 	
@@ -175,7 +168,7 @@ public class Game {
 	
 	// adding features
 	public void addingFeatures() {
-		for (int i = 0; i < probabilitys.length; i++) {
+		for (int i = 0; i <= 6; i++) {
 			if (rand.nextDouble() <= probabilitys[i] && !field.isFeatureActive(i)){
 				Point position = new Point(0,0);
 				do {
@@ -235,7 +228,43 @@ public class Game {
 			field.removeSpeedUp(headPosition);
 			field.setCell(Field.CellType.SNAKE, headPosition);
 			break;
-		default: //snake hit itself or the wall
+		case CUTTAIL:
+			snake.cutTail();
+			field.removeCutTail(headPosition);
+			field.setCell(Field.CellType.SNAKE, headPosition);
+		case OPENFIELD:
+			field.hasOpenField();
+			field.removeOpenField(headPosition);
+			field.setCell(Field.CellType.SNAKE, headPosition);
+			field.setFieldIsOpenTrue();
+		default: //snake hit itself or the wall, walks thru wall when FieldIsOpen is true
+			if(field.getFieldIsOpen()){
+				if(headPosition.x==0){
+					field.setCell(Field.CellType.SNAKE, new Point(field.width()-2,field.height()-1-headPosition.y));					
+					snake.setHead(new Point(field.width()-2,field.height()-1-headPosition.y));
+					field.setCell(Field.CellType.SPACE, snake.segments().pollFirst());
+					field.setCell(Field.CellType.WALL, headPosition);					
+				}
+				if(headPosition.x==29){
+					field.setCell(Field.CellType.SNAKE, new Point(1,field.height()-1-headPosition.y));					
+					snake.setHead(new Point(1,field.height()-1-headPosition.y));
+					field.setCell(Field.CellType.SPACE, snake.segments().pollFirst());
+					field.setCell(Field.CellType.WALL, headPosition);					
+				}
+				if(headPosition.y==0){
+					field.setCell(Field.CellType.SNAKE, new Point(field.width()-1-headPosition.x,field.height()-1));					
+					snake.setHead(new Point(field.width()-1-headPosition.x,field.height()-1));
+					field.setCell(Field.CellType.SPACE, snake.segments().pollFirst());
+					field.setCell(Field.CellType.WALL, headPosition);					
+				}
+				if(headPosition.y==19){
+					field.setCell(Field.CellType.SNAKE, new Point(field.width()-1-headPosition.x,1));					
+					snake.setHead(new Point(field.width()-1-headPosition.x,1));
+					field.setCell(Field.CellType.SPACE, snake.segments().pollFirst());
+					field.setCell(Field.CellType.WALL, headPosition);					
+				}
+			 break;
+			}
 			String causeOfDeath = "", color = "";
 			if (field.cell(headPosition) ==  Field.CellType.WALL) {
 				causeOfDeath = "wall";
@@ -247,11 +276,20 @@ public class Game {
 			} else if (snake.color() == Color.BLUEVIOLET) {
 				color = "blueviolet";
 			}
-//			System.out.println(color + " snake died because of hitting a " + causeOfDeath);
+			System.out.println(color + " snake died because of hitting a " + causeOfDeath);
 			
 			field.setCell(Field.CellType.SNAKE, headPosition);
 			snake.kill();
 			playersLeft--;
+		}
+		
+		if(field.getFieldIsOpen()){
+			OpenFieldTTL--;
+			System.out.println(OpenFieldTTL);
+			if(OpenFieldTTL<=0){
+				field.setFieldIsOpenFalse();
+				OpenFieldTTL=ThreadLocalRandom.current().nextInt(30, 120 + 1);
+			}
 		}
 		
         //portal: prevent portals from being eaten

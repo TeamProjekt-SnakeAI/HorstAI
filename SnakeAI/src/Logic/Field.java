@@ -20,18 +20,38 @@ public class Field {
 		PORTAL,
 		CHANGESNAKE,
 		CHANGEHEADTAIL,
-		SPEEDUP
+		SPEEDUP,
+		CUTTAIL,
+		OPENFIELD,
+		OPENFIELDPICTURE
 	}
 	
 	private CellType[][] cells;
 	private int width;
 	private int height;
 	private HashMap<Point, Apple> apples;
-	// 0 = Apple, 1 = featureWall, 2 = changeSnake, 3 = changeHeadTail, 4 = speedUp, 5 = isPortalActive
-	private boolean[] activeFeatures = {false, false , false , false , false, false};
+	// 0 = Apple, 1 = featureWall, 2 = changeSnake, 3 = changeHeadTail, 4 = speedUp, 5 = isPortalActive, 6 = cutTail,7=OpenField
+	private boolean[] activeFeatures = {false, false , false , false , false, false, false,false};
 	private Point speedUpPos; // the position of the speedUp feature, null if field hasn't it
 //	private boolean hasFeatureWall;
 //	private boolean isPortalActive;
+	private boolean fieldIsOpen = false;
+	
+	public void setFieldIsOpenTrue(){
+		 fieldIsOpen = true;
+		 cells[0][0] = CellType.OPENFIELDPICTURE;
+		 cells[width-1][0] = CellType.OPENFIELDPICTURE;
+		 cells[0][height-1] = CellType.OPENFIELDPICTURE;
+		 cells[width-1][height-1] = CellType.OPENFIELDPICTURE;
+	}
+	
+	public void setFieldIsOpenFalse(){
+		 fieldIsOpen = false;
+		 cells[0][0] = CellType.WALL;
+		 cells[width-1][0] = CellType.WALL;
+		 cells[0][height-1] = CellType.WALL;
+		 cells[width-1][height-1] = CellType.WALL;
+	}
 	
 	public Field(int width, int height) {
 		cells = new CellType[width][height];
@@ -94,9 +114,12 @@ public class Field {
 		case 2: setChangeSnake(p); break;
 		case 3: setChangeHeadTail(p); break;
 		case 4: setSpeedUp(p); break;
+		case 5: setCutTail(p); break;
+		case 6: setOpenField(p); break;
 		}
 	}
 	
+
 	// apple stuff
 	public Apple getApple(Point position) {
 		return apples.get(position);
@@ -203,6 +226,48 @@ public class Field {
 		}
 	}
 	
+	/**
+	 * Cut Tail stuff
+	 * 
+	 * If a snake eats the cutTail feature it will be cut by 3 + SnakeSize / 4 Elements (of course it can't be shorter than 1.)
+	 */
+	
+	private void setCutTail(Point position) {
+		cells[position.x][position.y] = CellType.CUTTAIL;
+		activeFeatures[6] = true;
+		}
+	
+	public boolean hasCutTail() {
+		return activeFeatures[6];
+	}
+	
+	public void removeCutTail(Point position) {
+		if(cells[position.x][position.y] == CellType.CUTTAIL) {
+			cells[position.x][position.y] = CellType.SPACE;
+			activeFeatures[6] = false;
+		}
+	}
+	//OpenField methods
+	public boolean hasOpenField()
+	{
+		return activeFeatures[7];
+	}
+	
+	public void setOpenField(Point position){
+		cells[position.x][position.y] = CellType.OPENFIELD;
+		activeFeatures[7] = true;		
+	}
+	public void removeOpenField(Point position){
+		if(cells[position.x][position.y] == CellType.OPENFIELD){
+			cells[position.x][position.y] = CellType.SPACE;
+			activeFeatures[7] = false;
+		}
+	}
+	
+	public boolean getFieldIsOpen() {
+		return fieldIsOpen;
+	}
+	
 	//Sets a wall at a given point in a given direction, length 3
 	public void setWall(Point centerPoint, Direction direction){
 		if(cell(centerPoint) == CellType.SPACE){
@@ -260,6 +325,12 @@ public class Field {
 				case SPEEDUP:
 					s += ">";
 					break;
+				case CUTTAIL:
+					s += "C";
+					break;
+				case OPENFIELD:
+					s += "<";
+					break;
 				default:
 					break;
 				}
@@ -270,4 +341,6 @@ public class Field {
 		}
 		return s;
 	}
+
+
 }

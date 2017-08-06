@@ -35,6 +35,10 @@ public class Pathfinding {
 	public static int WALL = 9;
 	public boolean STALLING = false;
 	
+	public Pathfinding()
+	{
+		
+	}
 	public Pathfinding(Field field)
 	{
 		actualField = field;
@@ -122,25 +126,17 @@ public class Pathfinding {
 			for (int j = 0; j < actualField.height(); j++)
 			{
 				distanceMap[i][j] = getDistance(new Point(i,j),target);
-				if(actualField.cell(new Point(i,j)).equals(CellType.APPLE))
+				switch(actualField.cell(new Point(i,j)))
 				{
-					shortWayMap[i][j] = SPACE;
-				}
-				else if(actualField.cell(new Point(i,j)).equals(CellType.SPACE))
-				{
-					shortWayMap[i][j] = SPACE;
-				}
-				else if(actualField.cell(new Point(i,j)).equals(CellType.WALL))
-				{
-					shortWayMap[i][j] = WALL;
-				}
-				else if(actualField.cell(new Point(i,j)).equals(CellType.SNAKE))
-				{
-					shortWayMap[i][j] = WALL;
-				}
-				else if(actualField.cell(new Point(i,j)).equals(CellType.FEATUREWALL))
-				{
-					shortWayMap[i][j] = SPACE;
+				case PORTAL:
+				case APPLE:
+				case SPACE:
+				case CHANGESNAKE:
+				case CHANGEHEADTAIL:
+				case SPEEDUP:
+				case FEATUREWALL: shortWayMap[i][j] = SPACE; break;
+				case SNAKE:
+				case WALL: shortWayMap[i][j] = WALL; break;
 				}
 			}
 		return shortWayMap;

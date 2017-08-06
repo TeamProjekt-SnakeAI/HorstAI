@@ -65,7 +65,7 @@ public class BrainMaster implements SnakeBrain{
 	
 	@Override
 	public Direction nextDirection(GameInfo gameInfo, Snake snake) {
-		System.out.println("------new round-----");
+//		System.out.println("------new round-----");
 		info = gameInfo;
 		init(snake);
 		
@@ -79,13 +79,15 @@ public class BrainMaster implements SnakeBrain{
 			firstRound = false;
 			return Direction.RIGHT;
 		}
-
-			
+		
+		alphaBeta.alphaBeta(gameInfo.field(), snake, enemySnake, 3, eatable);
+		if(alphaBeta.bestScore > 9000)
+			return alphaBeta.bestMove;
 		
 		//TODO umbenennen!
 		wallDetection();
 		//Ist der Schlangenkoerper gerade in einem Portal?
-		System.out.println("check Portals");
+//		System.out.println("check Portals");
 		if(gameInfo.getPortals().isActive())
 		{
 			if(gameInfo.field().cell(snake.headPosition()).equals(CellType.PORTAL))
@@ -96,33 +98,33 @@ public class BrainMaster implements SnakeBrain{
 		else
 			passedPortal = false;
 		
-		System.out.println("place Walls for a trap");
+//		System.out.println("place Walls for a trap");
 		if(wallPlacedAtApple())
 			return moveDirection;
 		
-		System.out.println("PortalHelpful");
+//		System.out.println("PortalHelpful");
 		if(isPortalHelpfulForSnake())
 			return moveDirection;
 		
-		System.out.println("AppleReach");
+//		System.out.println("AppleReach");
 		if(isAppleReachable())
 			return moveDirection;
 				
 		//Wenn wir bis jetzt noch keinen Weg gefunden haben, sollten wir auf Zeit spielen:
-		System.out.println("WallItemReach");
+//		System.out.println("WallItemReach");
 		if(isWallItemReachable())
 			return moveDirection;
 		
-		System.out.println("AltTargetReach");
+//		System.out.println("AltTargetReach");
 		if(isAlternativeTargetReachable())
 			return moveDirection;
 		
 		//Wahrscheinlich haben wir uns eingeschlossen! Berechne den kuerzesten Weg zum Schwanz
-		System.out.println("SnakeTrapped");
+//		System.out.println("SnakeTrapped");
 		if(isSnakeTrapped())
 			return moveDirection;
 		
-		System.out.println("CompleteMaxPath or random");
+//		System.out.println("CompleteMaxPath or random");
 		if((moveDirection = completeMaxPath.get(snake.headPosition())) != null && isMoveValid(moveDirection))
 			return moveDirection;
 		

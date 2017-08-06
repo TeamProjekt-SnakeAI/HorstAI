@@ -1,75 +1,43 @@
 package PrototypKIs;
 
+import java.util.HashMap;
 import java.util.Random;
 
-import Logic.Field.CellType;
 import Logic.GameInfo;
 import Logic.Point;
 import Logic.Snake;
 import Logic.Snake.Direction;
 import Util.Node;
-import Util.PathFinder;
 import Util.Pathfinding;
-import Util.TempSnake;
 import Util.UtilFunctions;
 import Logic.SnakeBrain;
+import Logic.Field.CellType;
 
-//SurvivalAI
-//Created by: Julia Hofmann, Marco Piechotta
-
-public class SurvivalAI implements SnakeBrain {
-
-	private final int DISTANCE_TO_ENEMYSNAKE = 2;
-	private final int MIN_CUT_LENGTH = 2;
-	private final int DESIRED_SNAKE_LENGTH = 1;
-	
+public class NotMovingBrain implements SnakeBrain {
 	private Snake mySnake;
 	private Snake enemySnake;
 	private Direction last = null;				//letzter Ausweg: RandomBrain-Move
 	private Direction moveDirection = null;
 	private GameInfo info;
-	private boolean passedPortal = false;
+	private boolean inPosition = false;
 		
 	//MinPathFinder Alg.: A*-Algorithm 
 	private Pathfinding minPathFinder;
-
 	@Override
 	public Direction nextDirection(GameInfo gameInfo, Snake snake) {
 		info = gameInfo;
 		init(snake);
-//		System.out.println("MySnake: " + mySnake.headPosition());
-//		System.out.println("EnemySnake: " + enemySnake.headPosition());
-//		System.out.println("EnemySnake-tail: " + enemySnake.segments().get(0));
-//		System.out.println("Portal?");
-		if(isPortalHelpfulForSnake())
+		if(snake.headPosition().equals(new Point(27,18)) || snake.headPosition().equals(new Point(28,18)))
+			inPosition = true;
+		else
+			inPosition = false;
+		
+		if(inPosition)
+			return (snake.headPosition().equals(new Point(27,18))?Direction.RIGHT:Direction.LEFT);
+		
+		if(getNextDirection(new Point(27,18)))
 			return moveDirection;
-//		System.out.println("To the Enemy Snake!");
-		if(UtilFunctions.getDistance(mySnake.headPosition(),enemySnake.segments().get(0)) > DISTANCE_TO_ENEMYSNAKE && getNextDirection(enemySnake.segments().get(0)))
-			return moveDirection;
-//		System.out.println("Random");
-		return randomMove(gameInfo, snake);	
-	}
-	private boolean isPortalHelpfulForSnake()
-	{
-		if(mySnake.segments().size() > MIN_CUT_LENGTH && !passedPortal && info.getPortals().isActive())
-		{
-			Point[] portals = {info.getPortals().getPortal1(),info.getPortals().getPortal2()};
-			for(int i=0;i<portals.length;i++)
-			{
-				Node path = minPathFinder.getMinPath(mySnake.headPosition(), portals[i],info.field(),mySnake.segments().get(0));
-				int dist = (path!= null?path.lengthToDest(mySnake.headPosition()):0);
-				double TTL = info.getPortals().getTTL();
-				if(path != null &&  TTL == dist+DESIRED_SNAKE_LENGTH)
-				{	
-					//Wir haben einen Pfad
-					while(path.getFrom() != null && !path.getFrom().getActual().equals(mySnake.headPosition()))
-						path = path.getFrom();	
-					moveDirection = UtilFunctions.getDirection(path.getFrom().getActual(),path.getActual());
-					return true;
-				}			
-			}
-		}
-		return false;
+		return randomMove(gameInfo, snake);
 	}
 	private boolean getNextDirection(Point target)
 	{
