@@ -1,20 +1,18 @@
 package Util;
 
-import java.util.Arrays;
 import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.PriorityQueue;
-
-import com.sun.javafx.css.CalculatedValue;
-
 import Logic.Field;
 import Logic.Point;
 import Logic.Field.CellType;
 
 public class Pathfinding {
+	
 	private int[][] distanceMap;
 	private int[][] shortWayMap;
+	
 	private PriorityQueue<Node> openList = new PriorityQueue<>(new Comparator<Node>(){
 
 		@Override
@@ -27,24 +25,49 @@ public class Pathfinding {
 		}
 		
 	});
+	
 	private List<Node> closedList = new LinkedList<>();
+	
 	private Field actualField;
 	
-	//Heuristik values
-	public static int SPACE = 1;
-	public static int WALL = 9;
-	public boolean STALLING = false;
+	//Heuristic values
+	private final int SPACE = 1;
+	private final int WALL = 9;
 	
+	//Constants
+	private final boolean OPEN = true;
+	private final boolean CLOSED = false;
+	private final int MAX_WALKABLE_HEIGHT = 19;
+	private final int MAX_WALKABLE_WIDTH = 29;
+	private final int MIN_WALKABLE = 1;
+	
+	/**
+	 * default constructor
+	 */
 	public Pathfinding()
 	{
 		
 	}
+	
+	/**
+	 * constructor of A*
+	 * @param field - current game field
+	 */
 	public Pathfinding(Field field)
 	{
 		actualField = field;
 		distanceMap = new int[field.width()][field.height()];
 	}
-	public Node getMinPath(Point startPoint, Point target,Field field, Point snakeTail) 
+	
+	/**
+	 * calculates the shortest path from startPoint to target.
+	 * @param startPoint - head position of the snake
+	 * @param target - destination point
+	 * @param field - current game field
+	 * @param snakeTail - the last position of the snake body
+	 * @return Linked list(Node class) with target as first Node
+	 */
+	public Node getMinPath(Point startPoint, Point target, Field field, Point snakeTail) 
 	{
 		openList.clear();
 		closedList.clear();
@@ -54,60 +77,78 @@ public class Pathfinding {
 			calcShortWayMap(target,actualField);
 		
 		if(UtilFunctions.getDistance(startPoint, snakeTail) > 1)
-			shortWayMap[snakeTail.x][snakeTail.y]=1;
+			shortWayMap[snakeTail.x][snakeTail.y] = SPACE;
 		// Calculate A*
 		openList.add(start);
 		
 		//Wenn das Ziel in der ClosedList ist oder die OpenList leer ist, sind wir fertig!
-		while (!isInList(false,target) && !openList.isEmpty()) {
+		while (!isInList(CLOSED,target) && !openList.isEmpty()) {
 			Node min = openList.remove();
 			closedList.add(min);
 			Point current = min.getActual();
 			for (int i = -1; i <= 1; i += 2)
 			{
-				if (current.x + i < 29 && current.x + i >= 1)
-					if(shortWayMap[current.x+i][current.y] == 1)
-						updateMin(new Point(current.x + i, current.y), min);
-				if (current.y + i < 19 && current.y + i >= 1)			
-					if(shortWayMap[current.x][current.y+i] == 1)
-						updateMin(new Point(current.x, current.y + i), min);
+				if (current.x + i < MAX_WALKABLE_WIDTH && current.x + i >= MIN_WALKABLE)
+					if(shortWayMap[current.x+i][current.y] == SPACE)
+						updateOpenList(new Point(current.x + i, current.y), min);
+				if (current.y + i < MAX_WALKABLE_HEIGHT && current.y + i >= MIN_WALKABLE)			
+					if(shortWayMap[current.x][current.y+i] == SPACE)
+						updateOpenList(new Point(current.x, current.y + i), min);
 			}
 		}
 		
 		closedList.remove(0);
 		return UtilFunctions.getMovePair(target,closedList);
 	}
-	private void updateMin(Point check, Node node) {
-		//Ist der Neue Punkt bereits in der ClosedList?
-		if(isInList(false,check))
+	
+	/** 
+	 * add a new point to open list or replace it, if:
+	 * - point is not in closed list
+	 * - point is not in open list or costs of the new node are less than costs of another node
+	 * @param check - particular neighbor point that is supposed to be added
+	 * @param node - current Node
+	 */
+	private void updateOpenList(Point check, Node node) 
+	{
+		if(isInList(CLOSED,check))
 			return;
 		
-		//Berechne die GCosts fuer den neuen Punkt
-		int costs = node.getGCosts() + shortWayMap[check.x][check.y];
+		int gCosts = node.getGCosts() + shortWayMap[check.x][check.y];
 		
-		//Gibt es bereits einen besseren Weg zu dem neuen Punkt?
-		if (isInList(true,check) && costs >= getElement(check).getGCosts())
+		if (isInList(OPEN,check) && gCosts >= getElemFromOpenList(check).getGCosts())
 			return;
 		
-		//Erstelle den neuen Node
-		Node checkNode = new Node(node,check,distanceMap[check.x][check.y],costs);
-		//Falls es einen schlechteren Node gab, loesche diesen
-		if(isInList(true,check))
-			openList.remove(getElement(check));
+		Node checkNode = new Node(node, check, distanceMap[check.x][check.y], gCosts);
+		
+		if(isInList(OPEN,check))
+			openList.remove(getElemFromOpenList(check));
 
-		//Fuege den neuen/besseren Node der OpenList hinzu
 		openList.add(checkNode);
 	}
-	private boolean isInList(boolean open,Point target) {
-		for (Node closed : (open?openList:closedList))
+	
+	/**
+	 * checks if a point is contained in a specific list
+	 * @param open - to specify OPEN or CLOSED list
+	 * @param target - current analyzed point
+	 * @return boolean true if contained in list, else false
+	 */
+	private boolean isInList(boolean open, Point target)
+	{
+		for (Node node : (open? openList:closedList))
 		{
-			if (closed.getActual().equals(target))
+			if (node.getActual().equals(target))
 				return true;
 		}
 		return false;
 	}
 
-	private Node getElement(Point p) {
+	/**
+	 * finds the element of open list that contains a specific point
+	 * @param p - specific point 
+	 * @return - element of open list that contains p
+	 */
+	private Node getElemFromOpenList(Point p) 
+	{
 		for (Node open : openList)
 		{
 			if (open.getActual().equals(p))
@@ -115,34 +156,48 @@ public class Pathfinding {
 		}
 		return null;
 	}
-
-	private int getDistance(Point a, Point b) {
-		return Math.abs(a.x - b.x) + Math.abs(a.y - b.y);
-	}
-	public int[][] calcShortWayMap(Point target, Field actualField) {
-		distanceMap = new int[actualField.width()][actualField.height()];
-		shortWayMap = new int[actualField.width()][actualField.height()];
-		for (int i = 0; i < actualField.width(); i++)
-			for (int j = 0; j < actualField.height(); j++)
+	
+	/**
+	 * fills short way map with heuristic values and distance map with distance values from each point to target
+	 * @param target - destination point of snake
+	 * @param actualField - the current game field
+	 * @return short way map - map that shows walkable areas and obstacles of the current game field saved as heuristic values SPACE and WALL
+	 */
+	public int[][] calcShortWayMap(Point target, Field actualField) 
+	{
+		int fieldWidth = actualField.width();
+		int fieldHeight = actualField.height();
+		
+		distanceMap = new int[fieldWidth][fieldHeight];
+		shortWayMap = new int[fieldWidth][fieldHeight];
+		
+		for (int i = 0; i < fieldWidth; i++)
+			for (int j = 0; j < fieldHeight; j++)
 			{
-				distanceMap[i][j] = getDistance(new Point(i,j),target);
-				switch(actualField.cell(new Point(i,j)))
+				Point currentPoint = new Point(i, j);
+				
+				distanceMap[i][j] = UtilFunctions.getDistance(currentPoint, target);
+				
+				if(actualField.cell(currentPoint).equals(CellType.WALL) || actualField.cell(currentPoint).equals(CellType.SNAKE))
 				{
-				case PORTAL:
-				case APPLE:
-				case SPACE:
-				case CHANGESNAKE:
-				case CHANGEHEADTAIL:
-				case SPEEDUP:
-				case FEATUREWALL: shortWayMap[i][j] = SPACE; break;
-				case SNAKE:
-				case WALL: shortWayMap[i][j] = WALL; break;
+					shortWayMap[i][j] = WALL;
 				}
+				else
+				{
+					shortWayMap[i][j] = SPACE;
+				}	
 			}
+		
 		return shortWayMap;
 	}
+	
+	/**
+	 * getter method for the closed list
+	 * @return closed list
+	 */
 	public List<Node> getClosedList()
 	{
 		return closedList;
 	}
+	
 }

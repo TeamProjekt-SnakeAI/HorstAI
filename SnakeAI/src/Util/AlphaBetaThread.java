@@ -31,10 +31,10 @@ public class AlphaBetaThread extends Thread{
 	}
 	public Direction getBestDir()
 	{
-		return abSearch.bestMove;
+		return abSearch.getBestMove();
 	}
 	public HashMap<Direction,Integer> getScores()
 	{
-		return abSearch.directionScores;
+		return abSearch.getDirectionScores();
 	}
 }

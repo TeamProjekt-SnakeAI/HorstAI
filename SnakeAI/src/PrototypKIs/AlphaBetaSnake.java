@@ -49,8 +49,8 @@ public class AlphaBetaSnake implements SnakeBrain {
 		}
 		getItems(gameInfo.field());
 		alphaBeta.alphaBeta(gameInfo.field(), snake, enemySnake, 8, eatable);
-		if(alphaBeta.bestMove != null)
-			return alphaBeta.bestMove;
+		if(alphaBeta.getBestMove() != null)
+			return alphaBeta.getBestMove();
 		
 		return randomMove();
 	}

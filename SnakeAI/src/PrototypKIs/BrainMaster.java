@@ -1,6 +1,7 @@
 package PrototypKIs;
 
 import java.util.HashMap;
+import java.util.Map.Entry;
 import java.util.Random;
 import java.util.Stack;
 
@@ -69,9 +70,6 @@ public class BrainMaster implements SnakeBrain{
 		info = gameInfo;
 		init(snake);
 		
-		//Verschiebe das alternativ Target, wenn nötig
-		if(UtilFunctions.getDistance(snake.headPosition(), altTargets[currentAltTarget]) <= CHANGE_DISTANCE)
-			changeAltTarget();
 		
 		//TODO: Loeschen wenn Threading da ist
 		if(firstRound)
@@ -79,10 +77,41 @@ public class BrainMaster implements SnakeBrain{
 			firstRound = false;
 			return Direction.RIGHT;
 		}
+		minPathFinder.clearBadPositions();
+		altTargets[0] = enemySnake.headPosition();
+		//Verschiebe das alternativ Target, wenn nötig
+		if(UtilFunctions.getDistance(snake.headPosition(), altTargets[currentAltTarget]) <= CHANGE_DISTANCE)
+			changeAltTarget();
 		
-		alphaBeta.alphaBeta(gameInfo.field(), snake, enemySnake, 3, eatable);
-		if(alphaBeta.bestScore > 9000)
-			return alphaBeta.bestMove;
+		alphaBeta.alphaBeta(gameInfo.field(), snake, enemySnake, 8, eatable);
+		if(alphaBeta.getBestScore() > 9000)
+		{
+			System.out.println("we win?");
+			return alphaBeta.getBestMove();
+		}
+		int countWorstScores = 0;
+		for(Entry<Direction,Integer> entry : alphaBeta.getDirectionScores().entrySet())
+		{
+			Point head = new Point(snake.headPosition().x,snake.headPosition().y);
+			switch(entry.getKey())
+			{
+			case UP: head.y--; break;
+			case DOWN:head.y++; break;
+			case LEFT:head.x--; break;
+			case RIGHT:head.x++; break;
+			}
+			if(entry.getValue() < -9000)
+			{
+//				System.out.println("entryVal: " + entry.getValue());
+				countWorstScores++;
+				minPathFinder.addBadPosition(head);
+			}	
+		}
+		if(countWorstScores > 2)
+		{
+			System.out.println("We loose? "+ alphaBeta.getBestScore());
+			return alphaBeta.getBestMove();
+		}
 		
 		//TODO umbenennen!
 		wallDetection();
@@ -130,6 +159,11 @@ public class BrainMaster implements SnakeBrain{
 		
 		return randomMove();
 	}
+	/**
+	 * depending on wallDetection() this function places a wall for a trap if the apple is already next to a wall.
+	 * After placing the wall the snake moves to a 'close point'.
+	 * @return true if the snake placed a wall and made a trap.
+	 */
 	private boolean placeWallIfPossible()
 	{
 		//TODO: Wall Feature hier einfuegen
@@ -284,6 +318,10 @@ public class BrainMaster implements SnakeBrain{
 		wallPlacedTarget = null;
 		return false;
 	}
+	/**
+	 * if the snake made a trap, then the snake should continue to move to the 'close Point'
+	 * @return true if it is possible to move to the 'close Point'
+	 */
 	private boolean wallPlacedAtApple()
 	{	
 		if(wallPlacedTarget != null)
@@ -296,6 +334,10 @@ public class BrainMaster implements SnakeBrain{
 		wallPlacedTarget = null;
 		return false;
 	}
+	/**
+	 * 
+	 * @return
+	 */
 	private boolean isPortalHelpfulForSnake()
 	{
 		if(mySnake.segments().size() > MIN_CUT_LENGTH && !passedPortal && info.getPortals().isActive())

@@ -4,12 +4,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
 
-import Brains.AwesomeNormalBrain;
 import Brains.HorstAI;
-import Brains.NotSoRandomBrain2;
 import Brains.RandomBrainThreaded;
-import Brains.SmartBrain;
-import Brains.SuperBrain;
 import Logic.Apple;
 import Logic.Field;
 import Logic.Field.CellType;
@@ -64,7 +60,7 @@ public class MainWindow extends Application {
     	
     	gameSpeed = 30;
         brain1 = new BrainMaster();
-        brain2 = new SmartBrain();
+        brain2 = new AlphaBetaSnake();
     	
     	Field field = Field.defaultField(30, 20);
 //    	runTournament();
@@ -304,9 +300,9 @@ public class MainWindow extends Application {
     
     void runTournament() {
     	ArrayList<SnakeBrain> brains = new ArrayList<SnakeBrain>();
-    	brains.add(new SuperBrain());
-    	brains.add(new NotSoRandomBrain2());
-    	brains.add(new SmartBrain());
+//    	brains.add(new SuperBrain());
+//    	brains.add(new NotSoRandomBrain2());
+//    	brains.add(new SmartBrain());
 //    	brains.add(new HorstAI());
     	brains.add(new BrainMaster());
     	brains.add(new AlphaBetaSnake());

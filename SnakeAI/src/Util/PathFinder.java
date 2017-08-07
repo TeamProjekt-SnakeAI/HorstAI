@@ -23,6 +23,7 @@ public class PathFinder {
 //	});
 	private PriorityQueue<Node> openList = new PriorityQueue<>((Node e1, Node e2) -> (int)(e1.getFCost()-e2.getFCost()));
 	private List<Node> closedList = new LinkedList<>();
+	private List<Point> badPositions = new LinkedList<>();
 	private Field actualField;
 	private Point portal1;
 	private Point portal2;
@@ -134,6 +135,8 @@ public class PathFinder {
 	public void calcShortWayMap(Point target, Field actualField) {
 		distanceMap = new int[actualField.width()][actualField.height()];
 		blockingMap = new int[actualField.width()][actualField.height()];
+		for(Point bad : badPositions)
+			blockingMap[bad.x][bad.y] = WALL;
 		for (int i = 0; i < actualField.width(); i++)
 			for (int j = 0; j < actualField.height(); j++)
 			{
@@ -146,8 +149,11 @@ public class PathFinder {
 				case CHANGESNAKE:
 				case CHANGEHEADTAIL:
 				case SPEEDUP:
+				case CUTTAIL:
+				case OPENFIELD:
 				case FEATUREWALL: blockingMap[i][j] = SPACE; break;
 				case SNAKE:
+				case OPENFIELDPICTURE:
 				case WALL: blockingMap[i][j] = WALL; break;
 				}
 			}
@@ -155,5 +161,12 @@ public class PathFinder {
 	public List<Node> getClosedList()
 	{
 		return closedList;
+	}
+	public void addBadPosition(Point p)
+	{
+		badPositions.add(p);
+	}
+	public void clearBadPositions(){
+		badPositions.clear();
 	}
 }

@@ -1,6 +1,5 @@
 package Util;
 
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -10,105 +9,87 @@ import Logic.Point;
 import Logic.Snake;
 import Logic.Snake.Direction;
 
-public class AlphaBeta {		
-	private int MAXDEPTH;				//Maximale Tiefe, die vorraus geschaut wird
-	private TempSnake mySnake;			//Referenz zur eigenen Schlange
-	private TempSnake enemySnake;		//Referenz zur gegnerischen Schlange
-	private Point startingPoint;
-	private Point saveApple;
-	private int[][] evalField;
+public class AlphaBeta {
+	//Class variables
+	private int MAXDEPTH;					//Max search depth
+	private TempSnake mySnake;				//copy of my Snake - Max-Player
+	private TempSnake enemySnake;			//copy of enemySnake - Min-Player
+	private Point startingPoint;			//Start point of the calculations
+	private Point saveApple;				//apple Position save (if another snake ate the apple)
+	private Point[] eatable = new Point[7];	//array of eatable stuff
+	
+	private HashMap<Direction,Integer> directionScores = new HashMap<>();	//Map to get the score for every Direction
+	private int bestScore;													//save the bestScore
+	private Direction bestMove;												//save the best Direction
 	
 	//{ WIN LOOSE }
 	private int[] evalSituation = {100000,-100000 };
-	//{ DISTANCEAPPLE DISTANCEWALL DISTANCECHANGESNAKE DISTANCECHANGEHEATTAIL DISTANCEPORTAL DISTANCESPEEDUP DISTANCECUTTAIL }
-	private int[] evalDistances = {100, 20,10, 10,5, 30, 40};
-	//Eatable Stuff
-	//0 = apple , 1 = wallItem , 2 = changeSnake , 3 = changeHeadTail , 4 = Portal
-		private enum Items {
-			APPLE(0), WALLITEM(1), CHANGESNAKE(2), CHANGEHEADTAIL(3), PORTAL(4), SPEEDUP(5), CUTTAIL(6);
-			private final int value;		
-			private Items(int value) {
-				this.value = value;
-			}
-			public int getIndex()
-			{
-				return value;
-			}
-		}
-		private Point[] eatable = new Point[7];
-	public HashMap<Direction,Integer> directionScores = new HashMap<>();	//HashMap, durch die man sich für jede Direction den berechneten Score holen kann
-	public int bestScore;													//Bester Score, der berechnet wurde
-	public Direction bestMove;												//Bester Move der berechnet wurde
-
-	//Konstruktor für genetischen Algorithmus um für evalSituation den besten Array zu ermitteln um Situationen zu bewerten
-//	public AlphaBeta(int[] evalStuff) {
-//		evalSituation = evalStuff;
-//	}
 	
-//FEHLER: TODO	
-//	Exception in thread "Thread-6" java.lang.NullPointerException
-//	at Util.AlphaBeta.gameEnd(AlphaBeta.java:262)
-//	at Util.AlphaBeta.max(AlphaBeta.java:66)
-//	at Util.AlphaBeta.alphaBeta(AlphaBeta.java:50)
-//	at Brains.HorstAI.nextDirection(HorstAI.java:77)
-//	at Logic.BrainThread.run(BrainThread.java:20)
+	//Eatable Enum
+	private enum Items {
+		APPLE(0), WALLITEM(1), CHANGESNAKE(2), CHANGEHEADTAIL(3), PORTAL(4), SPEEDUP(5), CUTTAIL(6);
+		private final int value;		
+		private Items(int value) {
+			this.value = value;
+		}
+		public int getIndex()
+		{
+			return value;
+		}
+	}
+
 	
 	/**
-	 * Berechnet AlphaBetaPruning für das aktuelle Spielfeld
-	 * @param field 	aktuelles Spielfeld
-	 * @param mySnake	eigene Schlange(MAX-Spieler)
-	 * @param enemySnake	gegnerische Schlange(MIN-Spieler)
-	 * @param searchDepth	maxTiefe
+	 * evaluate every direction.
+	 * sets bestScore, bestMove, directionScores.
+	 * @param field actual gamefield
+	 * @param mySnake Max-Player
+	 * @param enemySnake Min-Player
+	 * @param searchDepth maxDepth
 	 */
 	public void alphaBeta(Field field, Snake mySnake, Snake enemySnake, int searchDepth,Point[] eatable)
 	{
-		//Init AlphaBeta Klassenvariablen
+		//Init AlphaBeta
 		this.MAXDEPTH = searchDepth;
 		this.mySnake = new TempSnake(mySnake,"MYSNAKE");
 		this.enemySnake = new TempSnake(enemySnake, "ENEMYSNAKE");
 		this.eatable = eatable;
 		startingPoint = new Point(mySnake.headPosition().x,mySnake.headPosition().y);
-		evalField = new int[field.width()][field.height()];
 		
-		//Init GameField
+		//Init editable GameField
 		Type[][] gameField = new Type[field.width()][field.height()];
 		fillGameField(gameField,field);
 		
-		//letzte Berechnung löschen
+		//clear last calculations
 		directionScores.clear();
 		
-		//AlphaBeta berechnen. Nächster Spieler ist MAX-Spieler
+		//start calculating with Max-Player
 		bestScore = max(MAXDEPTH,Integer.MIN_VALUE,Integer.MAX_VALUE,this.mySnake,this.enemySnake,gameField);
-//		if(eatable[0]!= null)
-//		{
-//			System.out.println("ApplePos: " + eatable[0]);
-//			System.out.println("StartPos: " + startingPoint);
-//		}
-//		for(int i=0;i<evalField.length;i++)
-//		{
-//			System.out.println(Arrays.toString(evalField[i]));
-//		}
-//		if(eatable[0]== null)
-//			while(true)
-//				bestScore = 0;
 	}
 	
 	/**
-	 * max bestimmt für den Max-Spieler(die eigene Schlange) den nächsten Zug und testet diesen
-	 * @param depth		gibt die derzeitige Suchtiefe an und dient als Abbruchkriterium
-	 * @param alpha		um unwahrscheinliche Möglichkeiten auszuschließen
-	 * @param beta		um unwahrscheinliche Möglichkeiten auszuschließen
-	 * @param mySnake	derzeitige eigene Schlange
-	 * @param enemySnake	derzeitige gegnerische Schlange
-	 * @param gameField	derzeitiges Spielfeld
-	 * @return gibt die Bewertung für den gewählten Zug zurück sobald evaluiert wurde
+	 * determine the next move for the max player and changes the field for this move.
+	 * if we cant move, we evaluate the gamefield.
+	 * @param depth	how many moves can we still make (Min and Max together)
+	 * @param alpha	
+	 * @param beta
+	 * @param mySnake current MaxPlayers Snake
+	 * @param enemySnake current MinPlayers Snake
+	 * @param gameField	current ChangedGameField
+	 * @return the score of the evaluated gameField.
 	 */
 	private int max(int depth, int alpha, int beta, TempSnake mySnake, TempSnake enemySnake,Type[][] gameField)
 	{
-		List<Direction> possibleMoves = getPossibleMoves(mySnake.headPosition(),gameField, mySnake);		
+		List<Direction> possibleMoves = getPossibleMoves(mySnake.headPosition(),gameField);		
 		
-		//Check if we reached our desired search depth or if there is no possible move left or if the game is over (snake hit something)
-		if(depth==0 || possibleMoves.isEmpty() || gameEnd(gameField,depth) || (eatable[0] != null?mySnake.headPosition().equals(eatable[0]):false))
+		/*evaluate the gamefield if:
+		*-we have no steps left (depth)
+		*-we have no possible Moves
+		*-a snake hit something
+		*-maxPlayer reached the next Apple
+		*/
+		if(depth==0 || possibleMoves.isEmpty() || gameEnd(gameField,depth) || 
+				(eatable[Items.APPLE.getIndex()] != null?mySnake.headPosition().equals(eatable[Items.APPLE.getIndex()]):false))
 			return eval(gameField,mySnake.headPosition(),enemySnake.headPosition(),depth);
 		
 		int maxValue = alpha;
@@ -118,26 +99,23 @@ public class AlphaBeta {
 			TempSnake saveSnake = new TempSnake(mySnake);
 			if(gameField[saveSnake.headPosition().x][saveSnake.headPosition().y] == Type.APPLE)
 			{
-				if(eatable[0] != null)
-					saveApple = eatable[0];
-				eatable[0] = null;
+				if(eatable[Items.APPLE.getIndex()] != null)
+					saveApple = eatable[Items.APPLE.getIndex()];
+				eatable[Items.APPLE.getIndex()] = null;
 			}
 			Type undo = makeMove(dir,gameField,saveSnake,true);
-//			makeMove(dir,gameField,saveSnake,true);
 			int value = min(depth-1,maxValue,beta,saveSnake,enemySnake,gameField);
 			undoMove(gameField,mySnake,saveSnake.headPosition(),true,undo);
 			if(saveApple != null)
-				eatable[0] = saveApple;
+				eatable[Items.APPLE.getIndex()] = saveApple;
 			if(depth == MAXDEPTH)
 			{
-				System.out.println(dir + " : " + value);
-				evalField[saveSnake.headPosition().x][saveSnake.headPosition().y] = value;
+//				System.out.println(dir + " : " + value);
 				directionScores.put(dir, value);
 			}
 			if(value > maxValue)
 			{
 				maxValue = value;
-				evalField[saveSnake.headPosition().x][saveSnake.headPosition().y] = value;
 				if(depth == MAXDEPTH)
 				{
 					bestMove = dir;
@@ -149,18 +127,19 @@ public class AlphaBeta {
 		return maxValue;
 	}
 	/**
-	 * min bestimmt für den Min-Spieler(die gegnerische Schlange) den nächsten Zug und testet diesen
-	 * @param depth		gibt die derzeitige Suchtiefe an und dient als Abbruchkriterium
-	 * @param alpha		um unwahrscheinliche Möglichkeiten auszuschließen
-	 * @param beta		um unwahrscheinliche Möglichkeiten auszuschließen
-	 * @param mySnake	derzeitige eigene Schlange
-	 * @param enemySnake	derzeitige gegnerische Schlange
-	 * @param gameField	derzeitiges Spielfeld
-	 * @return gibt die Bewertung für den gewählten Zug zurück sobald evaluiert wurde
+	 * determine the next move for the min player and changes the field for this move.
+	 * if we cant move, we evaluate the gamefield.
+	 * @param depth	how many moves can we still make (Min and Max together)
+	 * @param alpha	
+	 * @param beta
+	 * @param mySnake current MaxPlayers Snake
+	 * @param enemySnake current MinPlayers Snake
+	 * @param gameField	current ChangedGameField
+	 * @return the score of the evaluated gameField.
 	 */
 	private int min(int depth, int alpha, int beta, TempSnake mySnake, TempSnake enemySnake,Type[][] gameField)
 	{
-		List<Direction> possibleMoves = getPossibleMoves(enemySnake.headPosition(),gameField, enemySnake);
+		List<Direction> possibleMoves = getPossibleMoves(enemySnake.headPosition(),gameField);
 		if(depth==0 || possibleMoves.isEmpty() || gameEnd(gameField,depth))
 			return eval(gameField,mySnake.headPosition(),enemySnake.headPosition(),depth);
 		int minValue = beta;
@@ -169,12 +148,11 @@ public class AlphaBeta {
 			TempSnake saveSnake = new TempSnake(enemySnake);
 			if(gameField[saveSnake.headPosition().x][saveSnake.headPosition().y] == Type.APPLE)
 			{
-				if(eatable[0] != null)
-					saveApple = eatable[0];
-				eatable[0] = null;
+				if(eatable[Items.APPLE.getIndex()] != null)
+					saveApple = eatable[Items.APPLE.getIndex()];
+				eatable[Items.APPLE.getIndex()] = null;
 			}
 			Type undo = makeMove(dir,gameField,saveSnake,false);
-//			makeMove(dir,gameField,saveSnake,false);
 			int value = max(depth-1,alpha,minValue,mySnake,saveSnake,gameField);
 			undoMove(gameField,enemySnake,saveSnake.headPosition(),false,undo);
 			if(saveApple != null)
@@ -189,12 +167,12 @@ public class AlphaBeta {
 		return minValue;
 	}
 	/**
-	 * wird verwendet um einen Zug zu simulieren
-	 * @param dir	in welche Richtung soll sich die Schlange bewegen
-	 * @param gameField	aktuelles Spielfeld
-	 * @param snake	zu bewegende Schlange
-	 * @param mySnake	handelt es sich dabei um die eigene Schlange?
-	 * @return	gibt den Feldtyp zurück, auf dem nun die Schlange ist. (Um den Zug später rückgängig machen zu können)
+	 * simulates a move for snake using the choosen direction dir
+	 * @param dir which direction should snake move?
+	 * @param gameField	current gameField
+	 * @param snake	moving snake
+	 * @param mySnake is it the maxPlayer?
+	 * @return for undoing this move the function returns the changed Field Type
 	 */
 	private Type makeMove(Direction dir, Type[][] gameField, TempSnake snake, boolean mySnake) {
 		
@@ -231,12 +209,12 @@ public class AlphaBeta {
 		return returnType;
 	}
 	/**
-	 * undoMove macht einen gewählten Zug für eine Schlange rückgängig
-	 * @param gameField aktuelles Spielfeld
-	 * @param snake	Schlange die bewegt werden muss
-	 * @param movedTo Schlange hatte sich hier hin bewegt
-	 * @param mySnake ist das meine eigene Schlange?
-	 * @param changed Feldtyp der durch die move-Bewegung ersetzt wurde
+	 * undo the last move for snake
+	 * @param gameField current gamefield
+	 * @param snake	- undo the move for this snake
+	 * @param movedTo snake moved to this position
+	 * @param mySnake is this the max-player?
+	 * @param changed Field type, which was changed from the move-function
 	 */
 	private void undoMove(Type[][] gameField, TempSnake snake,Point movedTo, boolean mySnake, Type changed) {
 		gameField[movedTo.x][movedTo.y] = changed;
@@ -247,103 +225,100 @@ public class AlphaBeta {
 			gameField[newTail.x][newTail.y] = Type.ENEMYSNAKE;
 	}
 	/**
-	 * Gibt alle gültigen Directions zurück
-	 * @param sH Position des Schlangenkopfs
-	 * @param gameField aktuelles Spielfeld
-	 * @param snake welche Schlange
-	 * @return Liste mit allen gültigen Directions
+	 * calculates all possible directions for the given Position.
+	 * this will discard directions if they lead into the surrounding walls of the gamefield
+	 * @param sH position of the snake head. calculate the directions from this position
+	 * @param gameField actual gamefield
+	 * @return list with all possible directions a snake can make depending on the given Position
 	 */
-	private List<Direction> getPossibleMoves(Point sH, Type[][] gameField, TempSnake snake) {
+	private List<Direction> getPossibleMoves(Point sH, Type[][] gameField) {
 		List<Direction> possibleMoves = new LinkedList<>();
 		for (int i = -1; i <= 1; i += 2) {
 			if (sH.x + i < 29 && sH.x + i >= 1)
 			{
 				Point newPos = new Point(sH.x+i,sH.y);
-//				if(gameField[sH.x+i][sH.y].equals(Type.APPLE) || gameField[sH.x+i][sH.y].equals(Type.SPACE) || newPos.equals(snake.segments().get(0)))
-					possibleMoves.add(UtilFunctions.getDirection(sH,newPos ));
+				possibleMoves.add(UtilFunctions.getDirection(sH,newPos ));
 			}
 			if (sH.y + i < 19 && sH.y + i >= 1)
 			{					
 				Point newPos =  new Point(sH.x,sH.y+i);
-//				if(gameField[sH.x][sH.y+i].equals(Type.APPLE) || gameField[sH.x][sH.y+i].equals(Type.SPACE) || newPos.equals(snake.segments().get(0)))
-					possibleMoves.add(UtilFunctions.getDirection(sH,newPos));
+				possibleMoves.add(UtilFunctions.getDirection(sH,newPos));
 			}
 		}
-//		System.out.println("Possible Moves: "+Arrays.toString(possibleMoves.toArray()));
 		return possibleMoves;
 	}
 	/**
-	 * eval bewertet das aktuelle Spielfeld und gibt zurück wie gut dieses für die eigene Schlange ist
-	 * @param gameField aktuelles Spielfeld
-	 * @param myHead Kopf der eigenen Schlange
-	 * @param enemyHead Kopf der gegnerischen Schlange
-	 * @return Bewertung des Spielfelds 
+	 * evaluate the current gamefield. How desirable is this situation for the max-player
+	 * @param gameField actual gamefield
+	 * @param myHead head of the Max-Player snake
+	 * @param enemyHead head of the Min-Player snake
+	 * @return the score of this game situation for the Max-Player
 	 */
 	private int eval(Type[][] gameField, Point myHead, Point enemyHead, int depth)
 	{
-//		System.out.println("myHead: " + myHead);
-//		System.out.println("enemyHead: " + enemyHead);
-		int value= 0;
-		//POINTS:
-		value += mySnake.segments().size();
-		value += (mySnake.getScore() - enemySnake.getScore());
+		int score = 0;
 		
-//		value += depth * 100;
-		//DISTANCE
-//		for(int i=0;i<eatable.length;i++)
-//		{
-//			if(eatable[i] != null)
-//				value += 1000000 - UtilFunctions.getDistance(myHead, eatable[i])*evalDistances[i];			
-//		}
-		if(eatable[0] == null)
-			System.out.println("no eatable");
-		if(eatable[0] != null && myHead.equals(eatable[0]))
-			value += 100;
-		if(eatable[0] != null)
-			value += 200 - 2*UtilFunctions.getDistance(myHead, eatable[0]) - UtilFunctions.getDistance(startingPoint, eatable[0]) ;
-		value += 200 - 2*UtilFunctions.getDistance(startingPoint, enemyHead) - UtilFunctions.getDistance(myHead, enemyHead);
+		//evaluate Snake-length and gameScore of Max and Min Player in this situation
+		score += mySnake.segments().size();
+		score += (mySnake.getScore() - enemySnake.getScore());
 		
-//		//WIN
+		//reward fast points
+		score += depth * 10;
+		
+		//evaluate distance to the apple
+		if(eatable[Items.APPLE.getIndex()] != null && myHead.equals(eatable[Items.APPLE.getIndex()]))
+			score += 100;
+		if(eatable[Items.APPLE.getIndex()] != null)
+			score += 200 - 2*UtilFunctions.getDistance(myHead, eatable[Items.APPLE.getIndex()]) 
+			- UtilFunctions.getDistance(startingPoint, eatable[Items.APPLE.getIndex()]) ;
+		score += 200 - 2*UtilFunctions.getDistance(startingPoint, enemyHead) - UtilFunctions.getDistance(myHead, enemyHead);
+		//Add more features here!
+		
+		//evaluate if the Max-Player wins
 		switch(gameField[enemyHead.x][enemyHead.y])
 		{
-		case ENEMYSNAKEINSNAKE: value+= 1*evalSituation[0];break;
-		case ENEMYINWALL: value+= 1*evalSituation[0];break;
+		case ENEMYSNAKEINSNAKE: score+= 1*evalSituation[0];break;
+		case ENEMYINWALL: score+= 1*evalSituation[0];break;
 		default:
 		}
 		
+		//Is the Min-Player in the surrounding walls of the gamefield?
 		if(enemyHead.x == 0 || enemyHead.y == 0)
-			value += 1*evalSituation[0];
+			score += 1*evalSituation[0];
 		if(enemyHead.x == gameField.length-1 || enemyHead.y == gameField[0].length-1)
-			value += 1*evalSituation[0];
+			score += 1*evalSituation[0];
 		
 		if(pointInSnake(mySnake,enemySnake.headPosition()))
-			value+= 1*evalSituation[0];
+			score+= 1*evalSituation[0];
 		if(pointInSnake(enemySnake,enemySnake.headPosition()))
-			value+= 1*evalSituation[0];
+			score+= 1*evalSituation[0];
 		
 		
-		//LOOSE
+		//evaluate if the Max-Player loose
 		switch(gameField[myHead.x][myHead.y])
 		{
-		case MYSNAKEINSNAKE: value+=1*evalSituation[1];break;
-		case MYSNAKEINWALL: value+=1*evalSituation[1];break;
+		case MYSNAKEINSNAKE: score+=1*evalSituation[1];break;
+		case MYSNAKEINWALL: score+=1*evalSituation[1];break;
 		default:
 		}
+		
+		//Is the Max-Player in the surrounding walls of the gamefield?
 		if(myHead.x == 0 || myHead.y == 0)
-			value += 1*evalSituation[1];
+			score += 1*evalSituation[1];
 		if(myHead.x == gameField.length-1 || myHead.y == gameField[0].length-1)
-			value += 1*evalSituation[1];
+			score += 1*evalSituation[1];
 		
 		if(pointInSnake(enemySnake,mySnake.headPosition()))
-			value+= 1*evalSituation[1];
+			score+= 1*evalSituation[1];
 		if(pointInSnake(mySnake,mySnake.headPosition()))
-			value+= 1*evalSituation[1];
-		return value;
+			score+= 1*evalSituation[1];
+		return score;
 	}
 	/**
-	 * gameEnd bestimmt anhand des Spielfelds ob das Spiel vorbei ist.
-	 * @param gameField aktuelles Spielfeld
-	 * @return
+	 * determines if the game is over depending on the actual gameField.
+	 * this is true if any snake hit a wall or the other snake.
+	 * @param gameField actual gameField
+	 * @return true if a snake hit something.
 	 */
 	private boolean gameEnd(Type[][] gameField, int depth)
 	{
@@ -355,7 +330,6 @@ public class AlphaBeta {
 				case MYSNAKEINWALL:
 				case ENEMYSNAKEINSNAKE: 
 				case ENEMYINWALL:
-//					System.out.println("TRUE!" + depth);
 					return true;
 				default:
 				}
@@ -364,7 +338,7 @@ public class AlphaBeta {
 	/**
 	 * dient zur initialisierung des Spielfelds, mit dem simuliert wird
 	 * @param gameField aktuelles Spielfeld(leer)
-	 * @param field Spielfeld des tatsächlichen Spiels
+	 * @param field Spielfeld des tatsï¿½chlichen Spiels
 	 */
 	private void fillGameField(Type[][] gameField,Field field)
 	{
@@ -411,10 +385,10 @@ public class AlphaBeta {
 			}
 	}
 	/**
-	 * gibt Zurück ob die Headposition in der anderen Schlange liegt
-	 * @param snake Schlange
-	 * @param head	Kopf der anderen Schlange
-	 * @return
+	 * calculates if a snake hit the other snake using the head Position and the segments of the other snake
+	 * @param snake check the segments of this snake
+	 * @param head	check the head of this snake
+	 * @return true if a snake hit the other
 	 */
 	private boolean pointInSnake(TempSnake snake, Point head)
 	{
@@ -424,41 +398,27 @@ public class AlphaBeta {
 		return false;
 	}
 	/**
-	 * Zur Ausgae des Spielfelds. Für Debugging Zwecke
-	 * @param field
-	 * @return
+	 * gives the calculated bestScore or 0 if we havent calculated it already
+	 * @return the highest score for the Max-Player
 	 */
-	public String gameFieldString(Type[][] field) {
-		String s = "";
-		for (int x = 0;x < field.length;x++) {
-			for (int y = 0;y < field[x].length;y++) {
-				switch(field[x][y]) {
-				case APPLE:
-					s += "*";
-					break;
-				case MYSNAKE:
-					s += "#";
-					break;
-				case ENEMYSNAKE:
-					s += "°";
-					break;
-				case SPACE:
-					s += " ";
-					break;
-				case WALL:
-					s += "X";
-					break;
-				default:
-					s+= "/";
-					break;
-				
-				}
-			}
-			if (x < field.length-1) {
-				s += "\n";
-			}
-		}
-		return s;
+	public int getBestScore()
+	{
+		return bestScore;
+	}
+	/**
+	 * gives the calculated scores for every direction the snake can move as a Map from Direction to Score(Integer)
+	 * if we havent calculated the it the map is empty
+	 * @return a map with the scores for every direction
+	 */
+	public HashMap<Direction, Integer> getDirectionScores() {
+		return directionScores;
+	}
+	/**
+	 * gives the bestMove or null if we havent calculated it already
+	 * @return the best direction depending on bestScore for the current gameField.
+	 */
+	public Direction getBestMove() {
+		return bestMove;
 	}
 	
 }

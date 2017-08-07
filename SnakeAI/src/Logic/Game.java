@@ -285,7 +285,7 @@ public class Game {
 		
 		if(field.getFieldIsOpen()){
 			OpenFieldTTL--;
-			System.out.println(OpenFieldTTL);
+//			System.out.println(OpenFieldTTL);
 			if(OpenFieldTTL<=0){
 				field.setFieldIsOpenFalse();
 				OpenFieldTTL=ThreadLocalRandom.current().nextInt(30, 120 + 1);
