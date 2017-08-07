@@ -30,7 +30,6 @@ public class BrainMaster implements SnakeBrain{
 	private Snake enemySnake;
 	private Direction last = null;				//letzter Ausweg: RandomBrain-Move
 	private Direction moveDirection = null;
-	private Field tempField;
 	private boolean firstRound=true;
 	private boolean passedPortal = false;
 	
@@ -335,8 +334,8 @@ public class BrainMaster implements SnakeBrain{
 		return false;
 	}
 	/**
-	 * 
-	 * @return
+	 * calculate a path through a portal to cut our snake to the DESIRED_SNAKE_LENGTH if we can.
+	 * @return true if we can cut our snake 
 	 */
 	private boolean isPortalHelpfulForSnake()
 	{
@@ -361,6 +360,10 @@ public class BrainMaster implements SnakeBrain{
 		}
 		return false;
 	}
+	/**
+	 * calculate a Pathto the next apple if we are closer to it than the enemy Snake
+	 * @return if we can reach the apple before the enemySnake and got a path to the apple
+	 */
 	private boolean isAppleReachable()
 	{
 		if(eatable[Items.APPLE.getIndex()] != null && isSnakeCloserToTarget(eatable[Items.APPLE.getIndex()]))
@@ -384,6 +387,10 @@ public class BrainMaster implements SnakeBrain{
 		}
 		return false;
 	}
+	/**
+	 * calculate if there is a WallFeatureItem on the gamefield and if there is one: calculate a path to the Item
+	 * @return true if there is a WallFeature on the field and we have a path to it.
+	 */
 	private boolean isWallItemReachable()
 	{
 		//Holen wir uns ein WallItem, falls wir noch keine setzen koennen
@@ -394,6 +401,11 @@ public class BrainMaster implements SnakeBrain{
 		}
 		return false;
 	}
+	/**
+	 * try to move to the alternative Position if possible.
+	 * This is good if we cant eat the apple and have nothing else to do.
+	 * @return true if we can move to an alternative Position
+	 */
 	private boolean isAlternativeTargetReachable()
 	{
 		//Koennen wir zu unserem AlternativZiel gehen?
@@ -438,6 +450,11 @@ public class BrainMaster implements SnakeBrain{
 		}
 		return false;
 	}
+	/**
+	 * calculate if the snake is trapped and if it is, then 
+	 * calculate the longest path from snake head to the tail using HamiltonPath
+	 * @return true if we are trapped and we have a way to our tail
+	 */
 	private boolean isSnakeTrapped()
 	{
 		//TODO: Pruefe ob Portal erreichbar ist oder Item um Kopf und Schwanz zu tauschen
@@ -466,18 +483,36 @@ public class BrainMaster implements SnakeBrain{
 			return true;
 		}
 	}
+	/**
+	 * calculates if our snake is closer to the target position
+	 * @param target - point where we want to go 
+	 * @return true if we are closer to the target
+	 */
 	private boolean isSnakeCloserToTarget(Point target)
 	{
 		return UtilFunctions.getDistance(mySnake.headPosition(),target) <= UtilFunctions.getDistance(enemySnake.headPosition(),target);
 	}
+	/**
+	 * calculates if we are closer to our target than the enemySnake to his target
+	 * @param myTarget - our target
+	 * @param enemyTarget the enemy target
+	 * @return true if we are closer to our target
+	 */
 	private boolean isSnakeCloserToTarget(Point myTarget, Point enemyTarget)
 	{
 		return UtilFunctions.getDistance(mySnake.headPosition(),myTarget) < UtilFunctions.getDistance(enemySnake.headPosition(),enemyTarget);
 	}
+	/**
+	 * change our current alternative target to the next one
+	 */
 	private void changeAltTarget()
 	{
 		currentAltTarget = ((++currentAltTarget)%altTargets.length);
 	}
+	/**
+	 * detect all walls next to the apple.
+	 * @return the encoded walls next to the apple as an integer
+	 */
 	private int wallDetection()
 	{
 		Point apple = eatable[Items.APPLE.value];
@@ -508,23 +543,23 @@ public class BrainMaster implements SnakeBrain{
 		}
 		return wall;
 	}
+	/**
+	 * initialize the following in 2 steps.
+	 * if firstRound = true initialize:<br>
+	 * - minPathFinder<br>
+	 * - maxPathFinder<br>
+	 * - alphaBeta<br>
+	 * - alternative Targets<br>
+	 * in the secound round initialize:<br>
+	 * - mySnake<br>
+	 * - enemySnake<br>
+	 * - completeMaxPath<br>
+	 * - eatable
+	 * @param our snake reference
+	 */
 	private void init(Snake snake)
 	{
-		tempField = new Field(info.field().width(),info.field().height());
-		for(int x=0;x<tempField.width();x++)
-		{
-			for(int y=0;y<tempField.height();y++)
-			{
-				Point p = new Point(x,y);
-				tempField.setCell(info.field().cell(p), p);
-			}
-		}
-		//A* berechnen
-		//snake.move(direction)
-		for(Point p : snake.segments())
-			tempField.setCell(CellType.SNAKE, p);
-		
-		//initialisieren
+		//init in the first round:
 		if(minPathFinder == null)
 			minPathFinder = new PathFinder();
 		if(maxPathFinder == null)
@@ -539,11 +574,11 @@ public class BrainMaster implements SnakeBrain{
 			altTargets[2] = new Point(1,info.field().height()/2);
 			altTargets[3] = new Point(info.field().width()-2,info.field().height()/2);
 			currentAltTarget = 0;
-		}
-					
+		}					
 		if(firstRound)
 			return;
-		//Initialize mySnake and EnemySnake
+		
+		//Init in the secound round
 		if(mySnake == null || enemySnake == null)
 		{
 			mySnake = snake;
@@ -557,10 +592,10 @@ public class BrainMaster implements SnakeBrain{
 			}
 		}
 		
-		//Berechne HamiltonPath ueber das gesamte Feld
+		//calculate the hamilton path on the whole field
 		if(completeMaxPath == null)
 		{
-			Node hamiltonPath = maxPathFinder.getCompleteMaxPath(Field.defaultField(tempField.width(), tempField.height()));
+			Node hamiltonPath = maxPathFinder.getCompleteMaxPath(Field.defaultField(info.field().width(), info.field().height()));
 			if(hamiltonPath != null)
 			{
 				completeMaxPath = new HashMap<>();
@@ -580,9 +615,15 @@ public class BrainMaster implements SnakeBrain{
 			}
 		}
 	
-		//Find all eatable Stuff
+		//Find all eatable Objects
 		getItems(info.field(),snake.headPosition());
 	}
+	/**
+	 * traverse the whole gameField and save the Points of all eatable Objects
+	 * in the Items enum
+	 * @param f the current gameField
+	 * @param snakeHead the headPosition of the snake
+	 */
 	private void getItems(Field f, Point snakeHead) {
 		eatable = new Point[5];
 		for(int x=0;x<f.width();x++)
