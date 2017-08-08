@@ -5,6 +5,11 @@ import Logic.Point;
 import Logic.Portals;
 import Logic.Snake.Direction;
 
+/**
+ * Thread to calculate the shortest path to a target.
+ * If there is a path it saves the next Direction in the field result
+ * @author Marco
+ */
 public class MinPathFinderThread extends Thread{
 	private PathFinder minPathFinder;
 	private Direction result;
@@ -13,8 +18,16 @@ public class MinPathFinderThread extends Thread{
 	private TempSnake mySnake;
 	private Portals portals;
 	
-	
-	
+	public MinPathFinderThread(PathFinder minPathFinder, Direction result, Field field, Point target, TempSnake mySnake,
+			Portals portals) {
+		this.minPathFinder = minPathFinder;
+		this.result = result;
+		this.field = field;
+		this.target = target;
+		this.mySnake = mySnake;
+		this.portals = portals;
+	}
+
 	public void run()
 	{
 		Node bestWay = minPathFinder.getMinPath(mySnake, target, field, portals);
@@ -35,4 +48,7 @@ public class MinPathFinderThread extends Thread{
 			}
 		}
 	}
+	public Direction getResult() {
+		return result;
+	}	
 }

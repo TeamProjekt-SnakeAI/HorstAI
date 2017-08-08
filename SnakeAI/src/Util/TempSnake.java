@@ -4,22 +4,27 @@ import java.util.LinkedList;
 
 import Logic.Field;
 import Logic.Field.CellType;
-import Logic.GameInfo;
 import Logic.Point;
 import Logic.Snake;
-import Logic.SnakeBrain;
 import Logic.Snake.Direction;
-import javafx.scene.paint.Color;
 
+/**
+ * TempSnake is a class to copy the snake for further calculations without changeing the original snake
+ * @author Marco
+ *
+ */
 public class TempSnake 
 {
-	private LinkedList<Point> segments; //snake segments, snake head is last element
-	private int grow; //tail of the snake isn't deletet while moving as long as grow is > 0
-	private Point lastPosition;
+	private LinkedList<Point> segments;
+	private int grow;
 	private boolean alive;
 	private String name;
 	private double score;
 	
+	/**
+	 * constructor of a temporary snake
+	 * @param points - position of the snake body
+	 */
 	public TempSnake(Point[] points)
 	{
 		this.segments = new LinkedList<Point>();
@@ -33,7 +38,13 @@ public class TempSnake
 		this.score = 0;
 	}
 	
-	public TempSnake(Snake snake, String name) {
+	/**
+	 * constructor of a temporary snake
+	 * @param snake - snake of the real game that is supposed to be copied
+	 * @param name - belongs to that real snake
+	 */
+	public TempSnake(Snake snake, String name)
+	{
 		this.segments = new LinkedList<Point>();
 		this.grow = 0;
 		for(Point p : snake.segments())
@@ -45,7 +56,13 @@ public class TempSnake
 		this.alive = true;
 		this.score = snake.getScore();
 	}
-	public TempSnake(TempSnake snake) {
+	
+	/**
+	 * constructor of a temporary snake
+	 * @param snake - temporary snake that is supposed to be copied to get a new temporary snake
+	 */
+	public TempSnake(TempSnake snake)
+	{
 		this.segments = new LinkedList<Point>();
 		this.grow = 0;
 		for(Point p : snake.segments())
@@ -58,7 +75,12 @@ public class TempSnake
 		this.score = snake.getScore();
 	}
 	
-	public TempSnake(Snake snake) {
+	/**
+	 * constructor of a temporary snake
+	 * @param snake - snake of the real game that is supposed to be copied 
+	 */
+	public TempSnake(Snake snake) 
+	{
 		this.segments = new LinkedList<Point>();
 		this.grow = 0;
 		for(Point p : snake.segments())
@@ -69,18 +91,26 @@ public class TempSnake
 		this.alive = true;
 		this.score = snake.getScore();
 	}
-	public void grow(int n) {
+	
+	/**
+	 * extends the snake
+	 * @param n - extension value, given as integer
+	 */
+	public void grow(int n) 
+	{
 		grow += n;
 		changeScore(n*10);
 	}
 	
-	public void move(Direction dir) {
-//		System.out.println("Snake: " + name);
-//		System.out.println("Segments: " +Arrays.toString(segments.toArray()));
+	/**
+	 * moves the snake to a certain direction
+	 * @param dir - one of 4 directions to take: DOWN, UP, LEFT, RIGHT
+	 */
+	public void move(Direction dir) 
+	{
 		Point head = segments.getLast();
-		
-		//calculate new head position
 		Point newHead = new Point(head.x, head.y);
+		
 		switch(dir) {
 		case DOWN:
 			newHead.y++;
@@ -101,12 +131,20 @@ public class TempSnake
 		segments.addLast(newHead);
 		
 		if (grow == 0) { //don't grow, delete tail
-			Point rp = segments.removeFirst();
+			segments.removeFirst();
 		} else { //tail isn't deleted, snake grew one field
 			grow--;
 		}
 	}
-	public Point move(Direction dir, Field field) {
+	
+	/**
+	 * moves the snake to a certain direction in the field
+	 * @param dir - one of 4 directions to take: DOWN, UP, LEFT, RIGHT
+	 * @param field - current game field 
+	 * @return new head position of the snake after the move
+	 */
+	public Point move(Direction dir, Field field) 
+	{
 		Point head = segments.getLast();
 		
 		//calculate new head position
@@ -151,39 +189,66 @@ public class TempSnake
 		
 		return newHead;
 	}
-	public Point undoMove(Direction dir, Type[][] field) {
-//		System.out.println("RemoveLast: " + Arrays.toString(segments.toArray()));
-		segments.removeLast();
-		segments.add(lastPosition);
-//		System.out.println("Removed: " + Arrays.toString(segments.toArray()));
-		return lastPosition;
-	}
 	
-	public Point headPosition() {
+	/**
+	 * get position of the snake head on the field
+	 * @return point in the field
+	 */
+	public Point headPosition() 
+	{
 		return segments.getLast();
 	}
 	
-	public LinkedList<Point> segments() {
+	/**
+	 * get position of the whole snake in the field
+	 * @return a list of points in the field
+	 */
+	public LinkedList<Point> segments() 
+	{
 		return segments;
 	}
 	
-	public boolean alive() {
+	/**
+	 * get current life situation of the snake, living or dead
+	 * @return boolean true if snake still lives, else false
+	 */
+	public boolean alive() 
+	{
 		return alive;
 	}
 	
-	public void kill() {
+	/**
+	 * turns off the snakes life
+	 */
+	public void kill() 
+	{
 		alive = false;
 	}
 
-	public String getName() {
+	/**
+	 * getter method for the name of the snake
+	 * @return name as a string 
+	 */
+	public String getName() 
+	{
 		return name;
 	}
 
-	public double getScore() {
+	/**
+	 * getter method for the game score of the snake
+	 * @return score as a floating-point number
+	 */
+	public double getScore() 
+	{
 		return score;
 	}
 
-	public void changeScore(double delta) {
+	/**
+	 * increases or decreases the game score by a value
+	 * @param delta - changing value
+	 */
+	public void changeScore(double delta) 
+	{
 		this.score += delta;
 	}
 	

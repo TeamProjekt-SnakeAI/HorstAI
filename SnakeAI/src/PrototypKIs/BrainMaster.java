@@ -19,24 +19,35 @@ import Util.PathFinder;
 import Util.TempSnake;
 import Util.UtilFunctions;
 
+/**
+ * BrainMaster uses all of our algorithms to choose the best path.
+ * It will calculate alphaBeta-pruning to find bad directions and avoid them.
+ * Also it will calculate a longest Path if the snake trapped itself.
+ * See the nextDirection function for more information
+ * 
+ * @author Julia Hofmann, Marco Piechotta
+ */
 public class BrainMaster implements SnakeBrain{
 	
-	//Konstanten
-	private final int CHANGE_DISTANCE = 1;
-	private final int MIN_CUT_LENGTH = 15;
-	private final int DESIRED_SNAKE_LENGTH = 9;
+	//Constants
+	private static final int CHANGE_DISTANCE = 1;
+	private static final int MIN_CUT_LENGTH = 15;
+	private static final int DESIRED_SNAKE_LENGTH = 9;
 
 	private Snake mySnake;
 	private Snake enemySnake;
-	private Direction last = null;				//letzter Ausweg: RandomBrain-Move
 	private Direction moveDirection = null;
 	private boolean firstRound=true;
 	private boolean passedPortal = false;
 	
-	//Eatable Stuff
-	//0 = apple , 1 = wallItem , 2 = changeSnake , 3 = changeHeadTail , 4 = Portal
+	/**
+	 * covers all eatable features on the field.
+	 * every Type has an index for using as array-index with eatable
+	 * @author Marco
+	 *
+	 */
 	private enum Items {
-		APPLE(0), WALLITEM(1), CHANGESNAKE(2), CHANGEHEADTAIL(3), PORTAL(4);
+		APPLE(0), WALLITEM(1), CHANGESNAKE(2), CHANGEHEADTAIL(3), PORTAL(4), SPEEDUP(5), CUTTAIL(6);
 		private final int value;		
 		private Items(int value) {
 			this.value = value;
@@ -46,7 +57,12 @@ public class BrainMaster implements SnakeBrain{
 			return value;
 		}
 	}
-	private Point[] eatable = new Point[5];
+	/**
+	 * Eatable Stuff<br>
+	 * 0 = apple , 1 = wallItem , 2 = changeSnake , 3 = changeHeadTail , 4 = Portal<br>
+	 * Use {@link Items}-enum array access
+	 */
+	private Point[] eatable = new Point[7];
 	private Point[] altTargets;
 	private int currentAltTarget;
 	private GameInfo info;
@@ -65,29 +81,26 @@ public class BrainMaster implements SnakeBrain{
 	
 	@Override
 	public Direction nextDirection(GameInfo gameInfo, Snake snake) {
-//		System.out.println("------new round-----");
 		info = gameInfo;
 		init(snake);
-		
-		
-		//TODO: Loeschen wenn Threading da ist
+
 		if(firstRound)
 		{
 			firstRound = false;
 			return Direction.RIGHT;
 		}
+		
 		minPathFinder.clearBadPositions();
 		altTargets[0] = enemySnake.headPosition();
-		//Verschiebe das alternativ Target, wenn nötig
+		
+		//shift the alternative target if needed
 		if(UtilFunctions.getDistance(snake.headPosition(), altTargets[currentAltTarget]) <= CHANGE_DISTANCE)
 			changeAltTarget();
 		
-		alphaBeta.alphaBeta(gameInfo.field(), snake, enemySnake, 8, eatable);
+		alphaBeta.alphaBeta(gameInfo.field(), snake, enemySnake, 5, eatable);
 		if(alphaBeta.getBestScore() > 9000)
-		{
-			System.out.println("we win?");
 			return alphaBeta.getBestMove();
-		}
+
 		int countWorstScores = 0;
 		for(Entry<Direction,Integer> entry : alphaBeta.getDirectionScores().entrySet())
 		{
@@ -101,21 +114,16 @@ public class BrainMaster implements SnakeBrain{
 			}
 			if(entry.getValue() < -9000)
 			{
-//				System.out.println("entryVal: " + entry.getValue());
 				countWorstScores++;
 				minPathFinder.addBadPosition(head);
 			}	
 		}
 		if(countWorstScores > 2)
-		{
-			System.out.println("We loose? "+ alphaBeta.getBestScore());
 			return alphaBeta.getBestMove();
-		}
 		
-		//TODO umbenennen!
-		wallDetection();
-		//Ist der Schlangenkoerper gerade in einem Portal?
-//		System.out.println("check Portals");
+		wallNextToAppleDetection();
+		
+		//Is the snakebody in a portal?
 		if(gameInfo.getPortals().isActive())
 		{
 			if(gameInfo.field().cell(snake.headPosition()).equals(CellType.PORTAL))
@@ -126,37 +134,30 @@ public class BrainMaster implements SnakeBrain{
 		else
 			passedPortal = false;
 		
-//		System.out.println("place Walls for a trap");
 		if(wallPlacedAtApple())
 			return moveDirection;
 		
-//		System.out.println("PortalHelpful");
 		if(isPortalHelpfulForSnake())
 			return moveDirection;
 		
-//		System.out.println("AppleReach");
-		if(isAppleReachable())
+		if(!isApplePosDangerous() && isAppleReachable())
 			return moveDirection;
 				
-		//Wenn wir bis jetzt noch keinen Weg gefunden haben, sollten wir auf Zeit spielen:
-//		System.out.println("WallItemReach");
+		//if we havent found a good path we should play save now
 		if(isWallItemReachable())
 			return moveDirection;
-		
-//		System.out.println("AltTargetReach");
+		;
 		if(isAlternativeTargetReachable())
 			return moveDirection;
 		
-		//Wahrscheinlich haben wir uns eingeschlossen! Berechne den kuerzesten Weg zum Schwanz
-//		System.out.println("SnakeTrapped");
+		//It is possible that our snake is trapped, so handle this situation
 		if(isSnakeTrapped())
 			return moveDirection;
 		
-//		System.out.println("CompleteMaxPath or random");
-		if((moveDirection = completeMaxPath.get(snake.headPosition())) != null && isMoveValid(moveDirection))
+		if((moveDirection = completeMaxPath.get(snake.headPosition())) != null && UtilFunctions.isMoveValid(moveDirection, snake, gameInfo))
 			return moveDirection;
 		
-		return randomMove();
+		return UtilFunctions.randomMove(gameInfo, snake);
 	}
 	/**
 	 * depending on wallDetection() this function places a wall for a trap if the apple is already next to a wall.
@@ -165,12 +166,11 @@ public class BrainMaster implements SnakeBrain{
 	 */
 	private boolean placeWallIfPossible()
 	{
-		//TODO: Wall Feature hier einfuegen
-			//   8         4         2         1
-			//[wallUp][wallRight][wallDown][wallLeft]
+		//   8         4         2         1
+		//[wallUp][wallRight][wallDown][wallLeft]
 		if(mySnake.getCanSetWall())
 		{
-			int walls = wallDetection();
+			int walls = wallNextToAppleDetection();
 			if(walls > 0 && !isSnakeCloserToTarget(eatable[Items.APPLE.getIndex()]))
 			{
 				Point apple = eatable[Items.APPLE.getIndex()];
@@ -219,6 +219,7 @@ public class BrainMaster implements SnakeBrain{
 					//
 					//| x
 					//  _
+					break;
 				case 4:
 					//
 					// x |
@@ -249,6 +250,7 @@ public class BrainMaster implements SnakeBrain{
 					//
 					//| x |
 					//  _
+					break;
 				case 8:
 					// _
 					// x
@@ -305,14 +307,14 @@ public class BrainMaster implements SnakeBrain{
 				}
 			}
 			//Place Wall at Random Point
-//			Random r = new Random();
-//			Point wall = null;
-//			do
-//			{
-//				wall = new Point(r.nextInt(info.field().width()),r.nextInt(info.field().height()));
-//				mySnake.setWall(wall, Direction.LEFT);
-//			}
-//			while(mySnake.getCanSetWall());
+			Random r = new Random();
+			Point wall = null;
+			do
+			{
+				wall = new Point(r.nextInt(info.field().width()),r.nextInt(info.field().height()));
+				mySnake.setWall(wall, Direction.LEFT);
+			}
+			while(mySnake.getCanSetWall());
 		}
 		wallPlacedTarget = null;
 		return false;
@@ -349,7 +351,7 @@ public class BrainMaster implements SnakeBrain{
 				double TTL = info.getPortals().getTTL();
 				if(path != null &&  TTL == dist+DESIRED_SNAKE_LENGTH)
 				{	
-					//Wir haben einen Pfad
+					//we have a path. calculate the next position
 					while(path.getFrom() != null && !path.getFrom().getActual().equals(mySnake.headPosition()))
 						path = path.getFrom();	
 					maxPath.clear();
@@ -368,18 +370,18 @@ public class BrainMaster implements SnakeBrain{
 	{
 		if(eatable[Items.APPLE.getIndex()] != null && isSnakeCloserToTarget(eatable[Items.APPLE.getIndex()]))
 		{
-			//Wir sind naeher am Apfel!
+			//our snake is nearer than the enemy to the apple
 			if(getNextDirection(eatable[Items.APPLE.getIndex()]))
 				return true;
 		}
 		else
 		{
-			//Mist! Der Gegner ist naeher am Apfel. Koennen wir die Schlangen tauschen? bevor er beim Apfel ist?
+			//the enemy is in a better position for the next apple
 			if(eatable[Items.CHANGESNAKE.getIndex()] != null && eatable[Items.APPLE.getIndex()] != null)
 			{
+				//if we can change our snakes before the enemy is at the apple, then do this
 				if(isSnakeCloserToTarget(eatable[Items.CHANGESNAKE.getIndex()], eatable[Items.APPLE.getIndex()]))
 				{
-					//Jap! Dann lass uns da hin gehen
 					if(getNextDirection(eatable[Items.CHANGESNAKE.getIndex()]))
 						return true;
 				}
@@ -393,7 +395,7 @@ public class BrainMaster implements SnakeBrain{
 	 */
 	private boolean isWallItemReachable()
 	{
-		//Holen wir uns ein WallItem, falls wir noch keine setzen koennen
+		//If we havent one already, then get a WallFeatureitem!
 		if(eatable[Items.WALLITEM.getIndex()] != null && !mySnake.getCanSetWall())
 		{
 			if(getNextDirection(eatable[Items.WALLITEM.getIndex()]))
@@ -408,7 +410,7 @@ public class BrainMaster implements SnakeBrain{
 	 */
 	private boolean isAlternativeTargetReachable()
 	{
-		//Koennen wir zu unserem AlternativZiel gehen?
+		//check if we can move to one of our alternative targets
 		for(int i=0;i<altTargets.length;i++)
 		{
 			if(!info.field().cell(altTargets[currentAltTarget]).equals(CellType.SNAKE) && 
@@ -416,9 +418,10 @@ public class BrainMaster implements SnakeBrain{
 			{
 				Node altWay = minPathFinder.getMinPath(new TempSnake(mySnake), altTargets[currentAltTarget],info.field(),info.getPortal());
 				
-				//Gibt es keinen Pfad dorthin?
+				//does a path exsist?
 				if(altWay != null)
 				{	
+					//Okay thats good. But to determine if we are trapped check if we could find a path to another alternative target!
 					int currentAltTarget2 = ((currentAltTarget+1)%4);
 					if(!info.field().cell(altTargets[currentAltTarget2]).equals(CellType.SNAKE) && 
 							!info.field().cell(altTargets[currentAltTarget2]).equals(CellType.WALL))
@@ -426,7 +429,7 @@ public class BrainMaster implements SnakeBrain{
 						Node altWay2 = minPathFinder.getMinPath(new TempSnake(mySnake), altTargets[currentAltTarget2],info.field(),info.getPortal());
 						if(altWay2 != null)
 						{
-							//Wir haben einen Pfad
+							//we got a path. So we arent trapped -> move the altWay
 							while(altWay.getFrom() != null && !altWay.getFrom().getActual().equals(mySnake.headPosition()))
 								altWay = altWay.getFrom();	
 							maxPath.clear();
@@ -457,18 +460,33 @@ public class BrainMaster implements SnakeBrain{
 	 */
 	private boolean isSnakeTrapped()
 	{
-		//TODO: Pruefe ob Portal erreichbar ist oder Item um Kopf und Schwanz zu tauschen
+		//check if we can switch the our head with our tail
+		if(eatable[Items.CHANGEHEADTAIL.getIndex()] != null)
+			if(getNextDirection(eatable[Items.CHANGEHEADTAIL.getIndex()]))
+				return true;
 		
-		//Wahrscheinlich haben wir uns eingeschlossen! Berechne den kuerzesten Weg zum Schwanz
+		//check if we can escape through a portal
+		if(info.getPortals().isActive())
+		{
+			if(getNextDirection(info.getPortals().getPortal1()))
+				return true;
+			if(getNextDirection(info.getPortals().getPortal2()))
+				return true;
+		}
+		
+		//We cant escape, so it is possible that we trapped ourself.
+		//Do we know that already and have a maxPath calculated?
 		if(maxPath.isEmpty())
 		{
-			maxPathFinder = new HamiltonPath();
 			Node way = maxPathFinder.getMaxPath(new TempSnake(mySnake).headPosition(), info.field(), new TempSnake(mySnake), new TempSnake(enemySnake),info.getPortal());
+			
+			//If we found a maxPath to an exitPoint, add this to a pathStack
 			while(way != null && way.getFrom() != null && !way.getActual().equals(mySnake.headPosition()))
 			{
 				maxPath.add(UtilFunctions.getDirection(way.getFrom().getActual(),way.getActual()));
 				way = way.getFrom();
 			}
+			//set the next Direction if we have a path in the pathStack
 			if(!maxPath.isEmpty())
 			{
 				moveDirection = maxPath.pop();
@@ -479,6 +497,7 @@ public class BrainMaster implements SnakeBrain{
 		}
 		else 
 		{
+			//set the next Direction if we have a path in the pathStack
 			moveDirection = maxPath.pop();
 			return true;
 		}
@@ -513,7 +532,7 @@ public class BrainMaster implements SnakeBrain{
 	 * detect all walls next to the apple.
 	 * @return the encoded walls next to the apple as an integer
 	 */
-	private int wallDetection()
+	private int wallNextToAppleDetection()
 	{
 		Point apple = eatable[Items.APPLE.value];
 		if(apple== null)
@@ -619,8 +638,7 @@ public class BrainMaster implements SnakeBrain{
 		getItems(info.field(),snake.headPosition());
 	}
 	/**
-	 * traverse the whole gameField and save the Points of all eatable Objects
-	 * in the Items enum
+	 * collects all positions of eatable Items on the field and saves their position as {@link Point} in eatable
 	 * @param f the current gameField
 	 * @param snakeHead the headPosition of the snake
 	 */
@@ -643,81 +661,64 @@ public class BrainMaster implements SnakeBrain{
 			}
 
 	}
+	/**
+	 * calculates a shortest Path to target from the head position of our snake
+	 * and saves the next direction in moveDirection if the path exsists
+	 * @param target - where do we want to go?
+	 * @return true if we found a path to the target.
+	 */
 	private boolean getNextDirection(Point target)
 	{
 		Node path = minPathFinder.getMinPath(new TempSnake(mySnake), target,info.field(),info.getPortal());
-		//Gibt es keinen Pfad dorthin?
+		
 		if(path != null)
 		{	
-			//Wir haben einen Pfad
-			while(path.getFrom() != null && !path.getFrom().getActual().equals(mySnake.headPosition()))
-				path = path.getFrom();	
+			//We found a Path so we doesnt need to follow the maxPath anymore
 			maxPath.clear();
+			
+			//Get the next direction for our current Position
+			while(path.getFrom() != null && !path.getFrom().getActual().equals(mySnake.headPosition()))
+				path = path.getFrom();
+
 			moveDirection = UtilFunctions.getDirection(path.getFrom().getActual(),path.getActual());
+			
+			//if moveDirection is null we move through a portal. This leads to a distance > 1 so the
+			//getDirection Function will return null. If this happens we move to the direction which leads us
+			//directly to our target.
 			if(moveDirection == null)
 			{
-				int x = path.getFrom().getActual().x - path.getActual().x; 
-				moveDirection = (x > 0?Direction.LEFT:(x == 0?null:Direction.RIGHT));
-				int y = path.getFrom().getActual().y - path.getActual().y;
-				if(moveDirection == null)
-					moveDirection = (y > 0?Direction.UP:Direction.DOWN);
+				int minDistance = Integer.MAX_VALUE;
+				for (int i = -1; i <= 1; i += 2)
+				{
+					Point movePosX = new Point(mySnake.headPosition().x+i,mySnake.headPosition().y);
+					int distanceX = UtilFunctions.getDistance(movePosX,target);
+					if(distanceX < minDistance)
+					{
+						minDistance = distanceX;
+						moveDirection = UtilFunctions.getDirection(mySnake.headPosition(), movePosX);
+					}
+					Point movePosY = new Point(mySnake.headPosition().x,mySnake.headPosition().y+i);
+					int distanceY = UtilFunctions.getDistance(movePosY,target);
+					if(distanceY < minDistance)
+					{
+						minDistance = distanceY;
+						moveDirection = UtilFunctions.getDirection(mySnake.headPosition(), movePosY);
+					}
+				}
 			}
 			return true;
 		}
 		return false;
 	}
-	
-	//Calculate Valid Moves
-	private boolean isMoveValid(Direction d) {
-		Point newHead = new Point(mySnake.headPosition().x, mySnake.headPosition().y);
-		switch(d) {
-		case DOWN:
-			newHead.y++;
-			break;
-		case LEFT:
-			newHead.x--;
-			break;
-		case RIGHT:
-			newHead.x++;
-			break;
-		case UP:
-			newHead.y--;
-			break;
-		default:
-			break;
-		}
-		if (newHead.x == -1) {
-			newHead.x = info.field().width()-1;
-		}
-		if (newHead.x == info.field().width()) {
-			newHead.x = 0;
-		}
-		if (newHead.y == -1) {
-			newHead.y = info.field().height()-1;
-		}
-		if (newHead.y == info.field().height()) {
-			newHead.y = 0;
-		}
-		
-		return info.field().cell(newHead) != CellType.SNAKE && info.field().cell(newHead) != CellType.WALL;
-	}
-	
-	private boolean isValidMovePossible() {
-		return isMoveValid(Direction.DOWN) || isMoveValid(Direction.UP) || isMoveValid(Direction.LEFT) || isMoveValid(Direction.RIGHT);
-	}
-	private Direction randomMove() {
-		Random rand = new Random();
-		Direction d;
-		if (rand.nextDouble() < 0.95 && last != null && isMoveValid(last)) {
-			d = last;
-		} else {
-			do {
-				d = Direction.values()[rand.nextInt(4)];
-			} while(!isMoveValid(d) && isValidMovePossible());
-		}
-		
-		last = d;
-		
-		return d;
+	/**
+	 * if the apple is near a wall, this position is dangerous and we should'nt eat this apple!
+	 * @return
+	 */
+	private boolean isApplePosDangerous()
+	{
+		if(wallNextToAppleDetection() != 0)
+			return true;
+		else 
+			return false;
 	}
 }

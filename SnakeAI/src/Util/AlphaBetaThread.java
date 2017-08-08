@@ -7,6 +7,12 @@ import Logic.Point;
 import Logic.Snake;
 import Logic.Snake.Direction;
 
+/**
+ * This Thread is for calculation AlphaBetaPruning on a given field for given snakes and given depth.
+ * The result can be reached via getter-methods
+ * @author Marco
+ *
+ */
 public class AlphaBetaThread extends Thread{
 	private AlphaBeta abSearch;
 	private Field field;
@@ -14,9 +20,7 @@ public class AlphaBetaThread extends Thread{
 	private Snake enemySnake;
 	private int searchDepth;
 	private Point[] eatable;
-	
-	
-	
+		
 	public AlphaBetaThread(Field field, Snake mySnake, Snake enemySnake, int searchDepth, Point[] eatable) {
 		this.field = field;
 		this.mySnake = mySnake;

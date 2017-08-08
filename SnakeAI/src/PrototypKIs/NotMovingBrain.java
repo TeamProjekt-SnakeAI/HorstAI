@@ -1,8 +1,5 @@
 package PrototypKIs;
 
-import java.util.HashMap;
-import java.util.Random;
-
 import Logic.GameInfo;
 import Logic.Point;
 import Logic.Snake;
@@ -11,47 +8,69 @@ import Util.Node;
 import Util.Pathfinding;
 import Util.UtilFunctions;
 import Logic.SnakeBrain;
-import Logic.Field.CellType;
 
+/**
+ * This SnakeBrain is only for testing. It will move to the right-down corner and then continue moving left then right.
+ * Use this SnakeBrain for "simulate" one Snake on a gameField
+ * 
+ * @author Marco
+ */
 public class NotMovingBrain implements SnakeBrain {
 	private Snake mySnake;
 	private Snake enemySnake;
-	private Direction last = null;				//letzter Ausweg: RandomBrain-Move
 	private Direction moveDirection = null;
 	private GameInfo info;
 	private boolean inPosition = false;
 		
 	//MinPathFinder Alg.: A*-Algorithm 
 	private Pathfinding minPathFinder;
+	
 	@Override
 	public Direction nextDirection(GameInfo gameInfo, Snake snake) {
+		//Initialize all classvariables
 		info = gameInfo;
 		init(snake);
+		
+		//If we are in our end-Position (right-down corner) set inPosition
 		if(snake.headPosition().equals(new Point(27,18)) || snake.headPosition().equals(new Point(28,18)))
 			inPosition = true;
 		else
 			inPosition = false;
 		
+		//if we are in position depending on the Point we are at, move left or right
 		if(inPosition)
 			return (snake.headPosition().equals(new Point(27,18))?Direction.RIGHT:Direction.LEFT);
 		
+		//if we're not in Position. We calculate a path to our position and move to the next position on the path
 		if(getNextDirection(new Point(27,18)))
 			return moveDirection;
-		return randomMove(gameInfo, snake);
+		
+		//otherwise we cant move there so make a random-move
+		return UtilFunctions.randomMove(gameInfo, snake);
 	}
+	/**
+	 * calculates a shortest Path to target from the head position of our snake
+	 * and saves the next direction in moveDirection if the path exsists
+	 * @param target - where do we want to go?
+	 * @return true if we found a path to the target.
+	 */
 	private boolean getNextDirection(Point target)
 	{
 		Node path = minPathFinder.getMinPath(mySnake.headPosition(), target,info.field(),mySnake.segments().get(0));
 		
-		//Gibt es keinen Pfad dorthin?
+		//Does the path exsist?
 		if(path != null)
 		{	
-			//Wir haben einen Pfad
+			//Get the next direction for our current Position
 			while(path.getFrom() != null && !path.getFrom().getActual().equals(mySnake.headPosition()))
 				path = path.getFrom();	
 			moveDirection = UtilFunctions.getDirection(path.getFrom().getActual(),path.getActual());
-			if(!isMoveValid(moveDirection, mySnake, info))
+			if(!UtilFunctions.isMoveValid(moveDirection, mySnake, info))
 				return false;
+			
+			//if moveDirection is null we move through a portal. This leads to a distance > 1 so the
+			//getDirection Function will return null. If this happens we move to the direction which leads us
+			//directly to our target.
 			if(moveDirection == null)
 			{
 				int x = path.getFrom().getActual().x - path.getActual().x; 
@@ -63,39 +82,6 @@ public class NotMovingBrain implements SnakeBrain {
 			return true;
 		}
 		return false;
-	}
-	public static boolean isMoveValid(Direction d, Snake snake, GameInfo gameInfo) {
-		Point newHead = new Point(snake.headPosition().x, snake.headPosition().y);
-		switch(d) {
-		case DOWN:
-			newHead.y++;
-			break;
-		case LEFT:
-			newHead.x--;
-			break;
-		case RIGHT:
-			newHead.x++;
-			break;
-		case UP:
-			newHead.y--;
-			break;
-		default:
-			break;
-		}
-		if (newHead.x == -1) {
-			newHead.x = gameInfo.field().width()-1;
-		}
-		if (newHead.x == gameInfo.field().width()) {
-			newHead.x = 0;
-		}
-		if (newHead.y == -1) {
-			newHead.y = gameInfo.field().height()-1;
-		}
-		if (newHead.y == gameInfo.field().height()) {
-			newHead.y = 0;
-		}
-		
-		return gameInfo.field().cell(newHead) == CellType.SPACE || gameInfo.field().cell(newHead) == CellType.APPLE;
 	}
 	private void init(Snake snake)
 	{
@@ -117,23 +103,5 @@ public class NotMovingBrain implements SnakeBrain {
 				}
 			}
 		}
-	}
-	public static boolean isValidMovePossible(Snake snake, GameInfo gameInfo) {
-		return isMoveValid(Direction.DOWN, snake, gameInfo) || isMoveValid(Direction.UP, snake, gameInfo) || isMoveValid(Direction.LEFT, snake, gameInfo) || isMoveValid(Direction.RIGHT, snake, gameInfo);
-	}
-	public Direction randomMove(GameInfo gameInfo, Snake snake) {
-		Random rand = new Random();
-		Direction d;
-		if (rand.nextDouble() < 0.95 && last != null && isMoveValid(last, snake, gameInfo)) {
-			d = last;
-		} else {
-			do {
-				d = Direction.values()[rand.nextInt(4)];
-			} while(!isMoveValid(d, snake, gameInfo) && isValidMovePossible(snake, gameInfo));
-		}
-		
-		last = d;
-		
-		return d;
 	}
 }

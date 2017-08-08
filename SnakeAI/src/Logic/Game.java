@@ -245,25 +245,26 @@ public class Game {
 					field.setCell(Field.CellType.SPACE, snake.segments().pollFirst());
 					field.setCell(Field.CellType.WALL, headPosition);					
 				}
-				if(headPosition.x==29){
+				else if(headPosition.x==29){
 					field.setCell(Field.CellType.SNAKE, new Point(1,field.height()-1-headPosition.y));					
 					snake.setHead(new Point(1,field.height()-1-headPosition.y));
 					field.setCell(Field.CellType.SPACE, snake.segments().pollFirst());
 					field.setCell(Field.CellType.WALL, headPosition);					
 				}
-				if(headPosition.y==0){
+				else if(headPosition.y==0){
 					field.setCell(Field.CellType.SNAKE, new Point(field.width()-1-headPosition.x,field.height()-1));					
 					snake.setHead(new Point(field.width()-1-headPosition.x,field.height()-1));
 					field.setCell(Field.CellType.SPACE, snake.segments().pollFirst());
 					field.setCell(Field.CellType.WALL, headPosition);					
 				}
-				if(headPosition.y==19){
+				else if(headPosition.y==19){
 					field.setCell(Field.CellType.SNAKE, new Point(field.width()-1-headPosition.x,1));					
 					snake.setHead(new Point(field.width()-1-headPosition.x,1));
 					field.setCell(Field.CellType.SPACE, snake.segments().pollFirst());
 					field.setCell(Field.CellType.WALL, headPosition);					
 				}
-			 break;
+				else
+					break;
 			}
 			String causeOfDeath = "", color = "";
 			if (field.cell(headPosition) ==  Field.CellType.WALL) {

@@ -11,6 +11,12 @@ import Logic.Portals;
 import Util.Node;
 import Util.PathFinder;
 import Util.TempSnake;
+
+/**
+ * Siehe SnakeDoku für genauen Testaufbau und erwartetem Ergebnis.
+ * @author Marco
+ *
+ */
 public class PathfindingTest {
 
 	@Test

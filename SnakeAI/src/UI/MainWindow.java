@@ -1,11 +1,22 @@
 package UI;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedList;
 
+import Brains.AwesomeBrain;
+import Brains.AwesomeNeuralBrain;
+import Brains.AwesomeNormalBrain;
 import Brains.HorstAI;
+import Brains.NCageBrain;
+import Brains.NotSoRandomBrain1;
+import Brains.NotSoRandomBrain2;
+import Brains.RandomBrain;
 import Brains.RandomBrainThreaded;
+import Brains.SmartBrain;
+import Brains.SuperBrain;
+import Brains.WallBrain;
 import Logic.Apple;
 import Logic.Field;
 import Logic.Field.CellType;
@@ -15,6 +26,10 @@ import Logic.Snake;
 import Logic.SnakeBrain;
 import PrototypKIs.AlphaBetaSnake;
 import PrototypKIs.BrainMaster;
+import PrototypKIs.NewBrain;
+import PrototypKIs.NewBrainTest;
+import PrototypKIs.NotMovingBrain;
+import PrototypKIs.SurvivalAI;
 import javafx.animation.Animation;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
@@ -63,51 +78,55 @@ public class MainWindow extends Application {
         brain2 = new AlphaBetaSnake();
     	
     	Field field = Field.defaultField(30, 20);
-//    	runTournament();
-		
-		Point start1 = new Point(2, 2);
-		Point start2 = new Point(27, 17);
-		ArrayList<Point> startPositions = new ArrayList<Point>();
-		startPositions.add(start1);
-		startPositions.add(start2);
-		ArrayList<SnakeBrain> brains = new ArrayList<SnakeBrain>();
-		brains.add(brain1);
-		brains.add(brain2);
-		ArrayList<Color> colors = new ArrayList<Color>();
-		colors.add(Color.YELLOWGREEN);
-		colors.add(Color.BLUEVIOLET);
-		double[] probabilitys = {1, 0.005, 0.002, 0.002, 0.005, 0.001, 0.5};
-		game = new Game(brains, startPositions, colors, field, probabilitys);
-		//game.run();Apple
-		
-		//move interval of the snakes
-		//TODO: add mode with "every snake gets as much time as needed"
-		Timeline timeline = new Timeline(new KeyFrame(
-		        Duration.millis(this.gameSpeed), new EventHandler<ActionEvent>() {
-
-					@Override
-					public void handle(ActionEvent arg0) {
-						game.nextStep();
-						gameUpdate();
-					}
-		        	
-		        }));
-		timeline.setCycleCount(Animation.INDEFINITE);
-		timeline.play();
+    	String res1 = runTournament();
+    	String res2 = runTournament2();
     	
-        primaryStage.setTitle("Super Ultra Deluxe Snake 3000");
-        
-        canvas = new Canvas(cellWidth*width, cellWidth*height);
-        gameUpdate();
-        ScrollPane root = new ScrollPane();
-        root.setMaxWidth(width*cellWidth);
-        root.setMaxHeight(height*cellWidth);
-        
-        root.setContent(canvas);
-        primaryStage.setScene(new Scene(root, 800, 800));
-        primaryStage.setWidth(918);
-        primaryStage.setHeight(641);
-        primaryStage.show();
+    	System.out.println(res1);
+    	System.out.println(res2);
+		
+//		Point start1 = new Point(2, 2);
+//		Point start2 = new Point(27, 17);
+//		ArrayList<Point> startPositions = new ArrayList<Point>();
+//		startPositions.add(start1);
+//		startPositions.add(start2);
+//		ArrayList<SnakeBrain> brains = new ArrayList<SnakeBrain>();
+//		brains.add(brain1);
+//		brains.add(brain2);
+//		ArrayList<Color> colors = new ArrayList<Color>();
+//		colors.add(Color.YELLOWGREEN);
+//		colors.add(Color.BLUEVIOLET);
+//		double[] probabilitys = {1, 0.005, 0.002, 0.002, 0.005, 0.001, 0.002};
+//		game = new Game(brains, startPositions, colors, field, probabilitys);
+//		//game.run();Apple
+//		
+//		//move interval of the snakes
+//		//TODO: add mode with "every snake gets as much time as needed"
+//		Timeline timeline = new Timeline(new KeyFrame(
+//		        Duration.millis(this.gameSpeed), new EventHandler<ActionEvent>() {
+//
+//					@Override
+//					public void handle(ActionEvent arg0) {
+//						game.nextStep();
+//						gameUpdate();
+//					}
+//		        	
+//		        }));
+//		timeline.setCycleCount(Animation.INDEFINITE);
+//		timeline.play();
+//    	
+//        primaryStage.setTitle("Super Ultra Deluxe Snake 3000");
+//        
+//        canvas = new Canvas(cellWidth*width, cellWidth*height);
+//        gameUpdate();
+//        ScrollPane root = new ScrollPane();
+//        root.setMaxWidth(width*cellWidth);
+//        root.setMaxHeight(height*cellWidth);
+//        
+//        root.setContent(canvas);
+//        primaryStage.setScene(new Scene(root, 800, 800));
+//        primaryStage.setWidth(918);
+//        primaryStage.setHeight(641);
+//        primaryStage.show();
     }
     
     public void gameUpdate() {
@@ -281,41 +300,125 @@ public class MainWindow extends Application {
     
     
     int brainClassToInt(SnakeBrain brain) {
-    	if (brain.getClass().getName() == "Brains.SuperBrain") {
+//    	if (brain.getClass().getName() == "PrototypKIs.BrainMaster") {
+//    		return 0;
+//    	} 
+    	if (brain.getClass().getName() == "PrototypKIs.AlphaBetaSnake" || brain.getClass().getName() == "PrototypKIs.BrainMaster") {
     		return 0;
-    	} else if (brain.getClass().getName() == "Brains.NotSoRandomBrain2") {
-    		return 1;
-    	} else if (brain.getClass().getName() == "Brains.SmartBrain") {
-    		return 2;
-    	} else if (brain.getClass().getName() == "Brains.HorstAI") {
-    		return 3;
     	} 
-    	else if (brain.getClass().getName() == "PrototypKIs.BrainMaster") {
+    	else if (brain.getClass().getName() == "Brains.SmartBrain") {
+    		return 1;
+    	}
+    	else if (brain.getClass().getName() == "Brains.NotSoRandomBrain1") {
+    		return 2;
+    	}
+    	else if (brain.getClass().getName() == "Brains.RandomBrain") {
+    		return 3;
+    	}
+    	else if (brain.getClass().getName() == "Brains.SuperBrain") {
     		return 4;
-		} else if (brain.getClass().getName() == "PrototypKIs.AlphaBetaSnake") {
-			return 5;
-		} 
+    	}
     	return -1;
     }
     
-    void runTournament() {
+    String runTournament() {
     	ArrayList<SnakeBrain> brains = new ArrayList<SnakeBrain>();
-//    	brains.add(new SuperBrain());
-//    	brains.add(new NotSoRandomBrain2());
-//    	brains.add(new SmartBrain());
-//    	brains.add(new HorstAI());
-    	brains.add(new BrainMaster());
+//    	brains.add(new BrainMaster());
     	brains.add(new AlphaBetaSnake());
+    	brains.add(new SmartBrain());
+    	brains.add(new NotSoRandomBrain1());
+    	brains.add(new RandomBrain());
+    	brains.add(new SuperBrain());
     	HashMap<Integer, Integer> wins = new HashMap<Integer, Integer>();
     	wins.put(0, 0);
     	wins.put(1, 0);
     	wins.put(2, 0);
     	wins.put(3, 0);
     	wins.put(4, 0);
-    	wins.put(5, 0);
+    	int[][] winsAgainst = new int[wins.size()][wins.size()];
     	
-    	for(int count=0;count<3;count++)
+    	for(int count=0;count<2;count++)
     	{
+	    	for (int i = 0;i < brains.size();i++) {
+	    		SnakeBrain b1 = brains.get(i);
+	    		for (int j = 0;j < brains.size();j++) {
+	    			SnakeBrain b2 = brains.get(j);
+	    			if (b1 == b2) {
+	    				continue;
+	    			}
+	    			
+	    			Field field = Field.defaultField(30, 20);
+	    			field.addApple(new Apple(50, 1, new Point(1,2)), new Point(1,2));
+	    			
+	    			Point start1 = new Point(2, 2);
+	    			Point start2 = new Point(27, 17);
+	    			ArrayList<Point> startPositions = new ArrayList<Point>();
+	    			startPositions.add(start1);
+	    			startPositions.add(start2);
+	    			ArrayList<SnakeBrain> bs = new ArrayList<SnakeBrain>();
+	    			bs.add(b1);
+	    			bs.add(b2);
+	    			ArrayList<Color> colors = new ArrayList<Color>();
+	    			colors.add(Color.YELLOWGREEN);
+	    			colors.add(Color.BLUEVIOLET);
+	    			double[] probabilitys = {1, 0.005, 0.002, 0.002, 0.005, 0.001, 0.002};
+	    			game = new Game(bs, startPositions, colors, field, probabilitys);
+	    			
+	    			for (int s = 0;s < 1000;s++) {
+	    				game.nextStep();
+	    			}
+	    			
+	    			if (game.getSnakes().get(0).alive() && !game.getSnakes().get(1).alive()) {
+	    				System.out.println(b1.getClass().getName());
+	    				winsAgainst[brainClassToInt(b1)][brainClassToInt(b2)]++;
+	    				wins.put(brainClassToInt(b1), wins.get(brainClassToInt(b1))+1);
+	    			} else if (game.getSnakes().get(1).alive() && !game.getSnakes().get(0).alive()) {
+	    				System.out.println(b2.getClass().getName());
+	    				winsAgainst[brainClassToInt(b2)][brainClassToInt(b1)]++;
+	    				wins.put(brainClassToInt(b2), wins.get(brainClassToInt(b2))+1);
+	    			} else {
+	    				if (game.getSnakes().get(0).getScore() > game.getSnakes().get(1).getScore()) {
+	    					System.out.println(b1.getClass().getName());
+	    					winsAgainst[brainClassToInt(b1)][brainClassToInt(b2)]++;
+	    					wins.put(brainClassToInt(b1), wins.get(brainClassToInt(b1))+1);
+	    				} else {
+	    					System.out.println(b2.getClass().getName());
+	    					winsAgainst[brainClassToInt(b2)][brainClassToInt(b1)]++;
+	    					wins.put(brainClassToInt(b2), wins.get(brainClassToInt(b2))+1);
+	    				}
+	    			}
+//	    			System.out.println(wins);
+	    			
+	    		}
+	    	}
+    	}
+    	String result = "";
+    	result += "AlphaBetaSnake = 0\n";
+    	result += wins+"\n";
+    	for(int i=0;i<winsAgainst.length;i++)
+    	{
+    		result += i+": " + Arrays.toString(winsAgainst[i])+"\n";
+    	}
+    	return result;
+    }  
+String runTournament2() {
+	ArrayList<SnakeBrain> brains = new ArrayList<SnakeBrain>();
+//	brains.add(new BrainMaster());
+	brains.add(new BrainMaster());
+	brains.add(new SmartBrain());
+	brains.add(new NotSoRandomBrain1());
+	brains.add(new RandomBrain());
+	brains.add(new SuperBrain());
+	HashMap<Integer, Integer> wins = new HashMap<Integer, Integer>();
+	wins.put(0, 0);
+	wins.put(1, 0);
+	wins.put(2, 0);
+	wins.put(3, 0);
+	wins.put(4, 0);
+	int[][] winsAgainst = new int[wins.size()][wins.size()];
+	
+	for(int count=0;count<2;count++)
+	{
     	for (int i = 0;i < brains.size();i++) {
     		SnakeBrain b1 = brains.get(i);
     		for (int j = 0;j < brains.size();j++) {
@@ -346,23 +449,37 @@ public class MainWindow extends Application {
     			}
     			
     			if (game.getSnakes().get(0).alive() && !game.getSnakes().get(1).alive()) {
+    				System.out.println(b1.getClass().getName());
+    				winsAgainst[brainClassToInt(b1)][brainClassToInt(b2)]++;
     				wins.put(brainClassToInt(b1), wins.get(brainClassToInt(b1))+1);
     			} else if (game.getSnakes().get(1).alive() && !game.getSnakes().get(0).alive()) {
     				System.out.println(b2.getClass().getName());
-    				System.out.println(brainClassToInt(b2));
+    				winsAgainst[brainClassToInt(b2)][brainClassToInt(b1)]++;
     				wins.put(brainClassToInt(b2), wins.get(brainClassToInt(b2))+1);
     			} else {
     				if (game.getSnakes().get(0).getScore() > game.getSnakes().get(1).getScore()) {
+    					System.out.println(b1.getClass().getName());
+    					winsAgainst[brainClassToInt(b1)][brainClassToInt(b2)]++;
     					wins.put(brainClassToInt(b1), wins.get(brainClassToInt(b1))+1);
     				} else {
+    					System.out.println(b2.getClass().getName());
+    					winsAgainst[brainClassToInt(b2)][brainClassToInt(b1)]++;
     					wins.put(brainClassToInt(b2), wins.get(brainClassToInt(b2))+1);
     				}
     			}
+//    			System.out.println(wins);
     			
     		}
     	}
-    	}
-    	System.out.println(wins);
-    }
-    
+	}
+	String result = "";
+	
+	result += "BrainMaster = 0\n";
+	result += wins+"\n";
+	for(int i=0;i<winsAgainst.length;i++)
+	{
+		result += i+": " + Arrays.toString(winsAgainst[i])+"\n";
+	}
+	return result;
+}  
 }

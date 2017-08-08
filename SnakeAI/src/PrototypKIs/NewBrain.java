@@ -6,9 +6,6 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map.Entry;
-
-import Logic.Apple;
 import Logic.Field;
 import Logic.Field.CellType;
 import Logic.GameInfo;
@@ -19,12 +16,17 @@ import Logic.SnakeBrain;
 import Util.Node;
 import Util.TempSnake;
 
+/**
+ * This Brain is only for testing algorithms or other stuff.
+ * The last tests contained errors so dont use this SnakeBrain!
+ * 
+ * This Code is also not documented because it is only for testing purposes
+ * @author Julia Hofmann
+ */
 public class NewBrain implements SnakeBrain {
 
 	@Override
-	public Direction nextDirection(GameInfo gameInfo, Snake snake) {
-		// TODO Auto-generated method stub
-		
+	public Direction nextDirection(GameInfo gameInfo, Snake snake) {		
 		// get position of apple
 		Point target = getApple(gameInfo.field());
 		

@@ -226,4 +226,8 @@ public class Snake {
 		
 		
 	}
+	public SnakeBrain getBrain()
+	{
+		return brain;
+	}
 }

@@ -1,31 +1,30 @@
 package PrototypKIs;
 
-import java.util.Random;
-
-import Logic.Field.CellType;
 import Logic.GameInfo;
 import Logic.Point;
 import Logic.Snake;
 import Logic.Snake.Direction;
 import Util.Node;
-import Util.PathFinder;
 import Util.Pathfinding;
-import Util.TempSnake;
 import Util.UtilFunctions;
 import Logic.SnakeBrain;
 
 //SurvivalAI
-//Created by: Julia Hofmann, Marco Piechotta
-
+//
+/**
+ * This SnakeBrain follows the other Snake.
+ * The Idea is that the other snake will make a mistake and hit a wall or itself before our snake dies
+ * 
+ * @author Julia Hofmann, Marco Piechotta
+ */
 public class SurvivalAI implements SnakeBrain {
 
-	private final int DISTANCE_TO_ENEMYSNAKE = 2;
-	private final int MIN_CUT_LENGTH = 2;
-	private final int DESIRED_SNAKE_LENGTH = 1;
+	private static final int DISTANCE_TO_ENEMYSNAKE = 2;
+	private static final int MIN_CUT_LENGTH = 2;
+	private static final int DESIRED_SNAKE_LENGTH = 1;
 	
 	private Snake mySnake;
 	private Snake enemySnake;
-	private Direction last = null;				//letzter Ausweg: RandomBrain-Move
 	private Direction moveDirection = null;
 	private GameInfo info;
 	private boolean passedPortal = false;
@@ -35,20 +34,25 @@ public class SurvivalAI implements SnakeBrain {
 
 	@Override
 	public Direction nextDirection(GameInfo gameInfo, Snake snake) {
+		//Initialize all classvariables
 		info = gameInfo;
 		init(snake);
-//		System.out.println("MySnake: " + mySnake.headPosition());
-//		System.out.println("EnemySnake: " + enemySnake.headPosition());
-//		System.out.println("EnemySnake-tail: " + enemySnake.segments().get(0));
-//		System.out.println("Portal?");
+		
+		//check if we need to cut our Snake because it is to long
 		if(isPortalHelpfulForSnake())
 			return moveDirection;
-//		System.out.println("To the Enemy Snake!");
+		
+		//if our distance is high enough to move directly to the tail of the enemysnake then calculate a path to this point
 		if(UtilFunctions.getDistance(mySnake.headPosition(),enemySnake.segments().get(0)) > DISTANCE_TO_ENEMYSNAKE && getNextDirection(enemySnake.segments().get(0)))
 			return moveDirection;
-//		System.out.println("Random");
-		return randomMove(gameInfo, snake);	
+		
+		//otherwise calculate a random move
+		return UtilFunctions.randomMove(gameInfo, snake);	
 	}
+	/**
+	 * calculate a path through a portal to cut our snake to the DESIRED_SNAKE_LENGTH if we can.
+	 * @return true if we can cut our snake 
+	 */
 	private boolean isPortalHelpfulForSnake()
 	{
 		if(mySnake.segments().size() > MIN_CUT_LENGTH && !passedPortal && info.getPortals().isActive())
@@ -61,7 +65,7 @@ public class SurvivalAI implements SnakeBrain {
 				double TTL = info.getPortals().getTTL();
 				if(path != null &&  TTL == dist+DESIRED_SNAKE_LENGTH)
 				{	
-					//Wir haben einen Pfad
+					//we have a path. calculate the next position
 					while(path.getFrom() != null && !path.getFrom().getActual().equals(mySnake.headPosition()))
 						path = path.getFrom();	
 					moveDirection = UtilFunctions.getDirection(path.getFrom().getActual(),path.getActual());
@@ -71,19 +75,32 @@ public class SurvivalAI implements SnakeBrain {
 		}
 		return false;
 	}
+	/**
+	 * calculates a shortest Path to target from the head position of our snake
+	 * and saves the next direction in moveDirection if the path exsists
+	 * @param target - where do we want to go?
+	 * @return true if we found a path to the target.
+	 */
 	private boolean getNextDirection(Point target)
 	{
 		Node path = minPathFinder.getMinPath(mySnake.headPosition(), target,info.field(),mySnake.segments().get(0));
 		
-		//Gibt es keinen Pfad dorthin?
+		//Does the path exsist?
 		if(path != null)
 		{	
-			//Wir haben einen Pfad
+			//Get the next direction for our current Position
 			while(path.getFrom() != null && !path.getFrom().getActual().equals(mySnake.headPosition()))
 				path = path.getFrom();	
+			
+			
 			moveDirection = UtilFunctions.getDirection(path.getFrom().getActual(),path.getActual());
-			if(!isMoveValid(moveDirection, mySnake, info))
+			
+			if(!UtilFunctions.isMoveValid(moveDirection, mySnake, info))
 				return false;
+			
+			//if moveDirection is null we move through a portal. This leads to a distance > 1 so the
+			//getDirection Function will return null. If this happens we move to the direction which leads us
+			//directly to our target.
 			if(moveDirection == null)
 			{
 				int x = path.getFrom().getActual().x - path.getActual().x; 
@@ -96,43 +113,14 @@ public class SurvivalAI implements SnakeBrain {
 		}
 		return false;
 	}
-	public static boolean isMoveValid(Direction d, Snake snake, GameInfo gameInfo) {
-		Point newHead = new Point(snake.headPosition().x, snake.headPosition().y);
-		switch(d) {
-		case DOWN:
-			newHead.y++;
-			break;
-		case LEFT:
-			newHead.x--;
-			break;
-		case RIGHT:
-			newHead.x++;
-			break;
-		case UP:
-			newHead.y--;
-			break;
-		default:
-			break;
-		}
-		if (newHead.x == -1) {
-			newHead.x = gameInfo.field().width()-1;
-		}
-		if (newHead.x == gameInfo.field().width()) {
-			newHead.x = 0;
-		}
-		if (newHead.y == -1) {
-			newHead.y = gameInfo.field().height()-1;
-		}
-		if (newHead.y == gameInfo.field().height()) {
-			newHead.y = 0;
-		}
-		
-		return gameInfo.field().cell(newHead) == CellType.SPACE || gameInfo.field().cell(newHead) == CellType.APPLE;
-	}
+	/**
+	 * init the minPathfinder and the references for mySnake and enemySnake
+	 * @param snake
+	 */
 	private void init(Snake snake)
 	{
 		
-		//initialisieren
+		//init MinPathfinder
 		if(minPathFinder == null)
 			minPathFinder = new Pathfinding();
 		
@@ -149,23 +137,5 @@ public class SurvivalAI implements SnakeBrain {
 				}
 			}
 		}
-	}
-	public static boolean isValidMovePossible(Snake snake, GameInfo gameInfo) {
-		return isMoveValid(Direction.DOWN, snake, gameInfo) || isMoveValid(Direction.UP, snake, gameInfo) || isMoveValid(Direction.LEFT, snake, gameInfo) || isMoveValid(Direction.RIGHT, snake, gameInfo);
-	}
-	public Direction randomMove(GameInfo gameInfo, Snake snake) {
-		Random rand = new Random();
-		Direction d;
-		if (rand.nextDouble() < 0.95 && last != null && isMoveValid(last, snake, gameInfo)) {
-			d = last;
-		} else {
-			do {
-				d = Direction.values()[rand.nextInt(4)];
-			} while(!isMoveValid(d, snake, gameInfo) && isValidMovePossible(snake, gameInfo));
-		}
-		
-		last = d;
-		
-		return d;
 	}
 }

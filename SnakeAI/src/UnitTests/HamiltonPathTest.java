@@ -9,7 +9,6 @@ import Logic.Point;
 import Logic.Portals;
 import Logic.Snake.Direction;
 import Logic.Field.CellType;
-import Util.AlphaBeta;
 import Util.HamiltonPath;
 import Util.Node;
 import Util.TempSnake;

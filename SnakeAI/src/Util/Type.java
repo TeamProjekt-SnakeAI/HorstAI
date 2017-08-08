@@ -1,5 +1,9 @@
 package Util;
 
+/**
+ * enum to represent all situations on the gamefield.
+ * alphabeta determines the winner on the celltypes -INWALL and -INSNAKE 
+ */
 public enum Type 
 {
 	WALL,

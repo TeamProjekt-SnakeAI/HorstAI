@@ -14,6 +14,10 @@
 //import Logic.SnakeBrain;
 //import javafx.scene.paint.Color;
 //
+/**
+ * GeneticAlgorithm used for finding the best values for the alphaBeta evaluation function.
+ * This code needs to be updated before using it again. Also the alphaBeta Algorithm needs a better evaluation function.
+ */
 //public class GeneticAlgorithm {
 //
 //	private static Random r = new Random();

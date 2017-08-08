@@ -11,14 +11,29 @@ import Logic.SnakeBrain;
 import Logic.Field.CellType;
 import Util.AlphaBeta;
 
+/**
+ * This SnakeBrain calculates a rating for every Direction.
+ * It will move to the position with the highest rating. The rating is calculated with AlphaBeta-Pruning.
+ * 
+ * @author Julia Hofmann, Marco Piechotta
+ */
 public class AlphaBetaSnake implements SnakeBrain {
+	
 	private AlphaBeta alphaBeta = new AlphaBeta();
 	private Snake mySnake;
+	private Snake enemySnake;
+	/**
+	 * last direction the snake moved to
+	 */
 	private Direction last = null;	
 	private GameInfo info;
-	private Snake enemySnake;
-	//Eatable Stuff
-	//0 = apple , 1 = wallItem , 2 = changeSnake , 3 = changeHeadTail , 4 = Portal
+
+	/**
+	 * covers all eatable features on the field.
+	 * every Type has an index for using as array-index with eatable
+	 * @author Marco
+	 *
+	 */
 	private enum Items {
 		APPLE(0), WALLITEM(1), CHANGESNAKE(2), CHANGEHEADTAIL(3), PORTAL(4), SPEEDUP(5), CUTTAIL(6);
 		private final int value;		
@@ -30,10 +45,17 @@ public class AlphaBetaSnake implements SnakeBrain {
 			return value;
 		}
 	}
+	/**
+	 * Eatable Stuff<br>
+	 * 0 = apple , 1 = wallItem , 2 = changeSnake , 3 = changeHeadTail , 4 = Portal<br>
+	 * Use {@link Items}-enum array access
+	 */
 	private Point[] eatable = new Point[7];
+	
 	@Override
 	public Direction nextDirection(GameInfo gameInfo, Snake snake) {
 		info = gameInfo;
+		
 		//Initialize mySnake and EnemySnake
 		if(mySnake == null || enemySnake == null)
 		{
@@ -48,12 +70,21 @@ public class AlphaBetaSnake implements SnakeBrain {
 			}
 		}
 		getItems(gameInfo.field());
-		alphaBeta.alphaBeta(gameInfo.field(), snake, enemySnake, 8, eatable);
+		
+		//calculate which Direction is the best to go
+		alphaBeta.alphaBeta(gameInfo.field(), snake, enemySnake, 12, eatable);
+		
+		//If the calculation resulted in an error we havnt a bestMove so we do a random move
 		if(alphaBeta.getBestMove() != null)
 			return alphaBeta.getBestMove();
 		
 		return randomMove();
 	}
+	/**
+	 * collects all positions of eatable Items on the field and saves their position as {@link Point} in eatable
+	 * @param f the current gameField
+	 * @param snakeHead the headPosition of the snake
+	 */
 	private void getItems(Field f) {
 		eatable = new Point[7];
 		for(int x=0;x<f.width();x++)
@@ -78,7 +109,10 @@ public class AlphaBetaSnake implements SnakeBrain {
 
 	}
 	
-	//Calculate Valid Moves
+	/**
+	 * @param d move direction we want to check if it is valid
+	 * @return true if the direction is valid for our snake. This means that the given {@link CellType} isnt SNAKE or WALL
+	 */
 	private boolean isMoveValid(Direction d) {
 		Point newHead = new Point(mySnake.headPosition().x, mySnake.headPosition().y);
 		switch(d) {
@@ -112,10 +146,17 @@ public class AlphaBetaSnake implements SnakeBrain {
 		
 		return info.field().cell(newHead) != CellType.SNAKE && info.field().cell(newHead) != CellType.WALL;
 	}
-	
+	/**
+	 * check if our snake can make a valid move.
+	 * @return true if we can make valid moves
+	 */
 	private boolean isValidMovePossible() {
 		return isMoveValid(Direction.DOWN) || isMoveValid(Direction.UP) || isMoveValid(Direction.LEFT) || isMoveValid(Direction.RIGHT);
 	}
+	/**
+	 * calculate a random valid direction.
+	 * @return random generated direction
+	 */
 	private Direction randomMove() {
 		Random rand = new Random();
 		Direction d;

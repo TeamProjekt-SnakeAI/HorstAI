@@ -18,6 +18,11 @@ import Util.PathFinder;
 import Util.TempSnake;
 import Util.UtilFunctions;
 
+/**
+ * This is an old version of the HorstAI
+ * It is used to determine if our new AI made any improvment.
+ * @author Marco
+ */
 public class HorstProto implements SnakeBrain{
 
 	private Snake mySnake;
